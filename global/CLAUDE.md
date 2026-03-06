@@ -1,0 +1,59 @@
+# Global Context — Dominick @ Areté Capital Partners
+
+## Identity
+- **Name**: Dominick
+- **Role**: Senior Software Engineer
+- **Org**: Areté Capital Partners (ACP)
+- **Mission**: Build AI solutions that make Spencer, Justino, and Sara's work easier and more effective
+
+## Working Style
+- Casual and direct — no fluff, no filler
+- Plan before code — always
+- Accuracy over speed
+- Surface gaps in my thinking, don't just validate me
+- Flag repetitive tasks so we can automate them
+
+## What I'm Building
+- AI-powered workflows and automations for internal teams
+- Agentic tooling using Claude Code, MCP, and Anthropic APIs
+- Artifacts, skills, agents, and tools for the Areté AI platform
+
+## Stack
+- **Languages**: TypeScript/JavaScript (primary), Python (secondary)
+- **Frameworks**: Next.js, React, Node.js
+- **AI**: Anthropic API, Claude Code, MCP servers
+- **Infra**: TBD per project (check project CLAUDE.md)
+
+## Code Defaults
+- TypeScript strict mode
+- Functional components, hooks — no class components
+- Named exports over default exports (unless framework requires)
+- Early returns over nested conditionals
+- Explicit error handling — no silent failures
+- No commented-out code in commits
+
+## Response Defaults
+- Short bullets for lists, prose for explanations
+- Always propose a plan before writing code
+- Call out assumptions and tradeoffs
+- If something seems off, say so
+- **All doc output as `.md` files** — never paste long docs into chat, write to file
+
+## Standard Workflow
+
+**Single feature**: `/research` (optional) → `/brainstorm` → `/plan` → `/execute` → `/end-session`
+**Epic (multi-feature)**: `/brainstorm` → `/plan [epic]` → `/orchestrate` → `/plan` each stub → `/execute` each → `/end-session`
+
+Full walkthroughs: `@docs/workflows/feature-workflow.md`, `@docs/workflows/epic-workflow.md`, `@docs/workflows/research-workflow.md`
+
+Rules:
+- Run `/research` when evaluating unfamiliar tech before brainstorming
+- Skip brainstorm only if approach is already decided
+- Skip plan only for tiny tasks (single file, no risk, < 30 min)
+- Never execute a plan with status `Draft` — flip to `Ready` first
+- Always run `/end-session` before closing
+
+## Memory
+- Session learnings should be appended to `.claude/memory/session-log.md` in the active project
+- Use the `#` shortcut to add quick memory items during sessions
+- Run `/end-session` before closing to summarize and commit learnings
