@@ -109,10 +109,166 @@ if __name__ == "__main__":
     app()
 ```
 
+## FastAPI
+
+```python
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: init DB, connections, etc.
+    await init_db()
+    yield
+    # Shutdown: cleanup
+    await close_db()
+
+app = FastAPI(title="Service Name", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://app.aretecap.com"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+### Routers
+```python
+from fastapi import APIRouter
+
+router = APIRouter(prefix="/api/v1/items", tags=["items"])
+
+@router.get("/", response_model=list[ItemResponse])
+async def list_items(
+    limit: int = 10,
+    offset: int = 0,
+    db: Database = Depends(get_db),
+) -> list[ItemResponse]:
+    return await db.fetch_items(limit=limit, offset=offset)
+
+@router.post("/", response_model=ItemResponse, status_code=status.HTTP_201_CREATED)
+async def create_item(
+    payload: ItemCreate,
+    db: Database = Depends(get_db),
+) -> ItemResponse:
+    return await db.create_item(payload)
+```
+
+### Dependencies
+```python
+from fastapi import Depends, Header, HTTPException
+
+async def verify_token(authorization: str = Header(...)) -> dict:
+    token = authorization.removeprefix("Bearer ")
+    try:
+        payload = decode_jwt(token)
+    except InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return payload
+
+@router.get("/me")
+async def get_me(user: dict = Depends(verify_token)) -> dict:
+    return user
+```
+
+## Pydantic v2 Patterns
+
+```python
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+class ItemCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    tags: list[str] = Field(default_factory=list)
+    priority: int = Field(default=0, ge=0, le=5)
+
+    @field_validator("tags")
+    @classmethod
+    def normalize_tags(cls, v: list[str]) -> list[str]:
+        return [t.lower().strip() for t in v]
+
+class ItemResponse(ItemCreate):
+    id: int
+    created_at: datetime
+
+    model_config = {"from_attributes": True}  # replaces orm_mode
+```
+
+## Async SQLite (aiosqlite)
+
+```python
+import aiosqlite
+
+DB_PATH = "data/app.db"
+
+async def get_db() -> aiosqlite.Connection:
+    db = await aiosqlite.connect(DB_PATH)
+    db.row_factory = aiosqlite.Row
+    await db.execute("PRAGMA journal_mode=WAL")
+    await db.execute("PRAGMA foreign_keys=ON")
+    return db
+
+async def fetch_items(db: aiosqlite.Connection, limit: int = 10) -> list[dict]:
+    async with db.execute(
+        "SELECT * FROM items ORDER BY created_at DESC LIMIT ?", (limit,)
+    ) as cursor:
+        rows = await cursor.fetchall()
+        return [dict(row) for row in rows]
+```
+
+## httpx Async Client
+
+```python
+import httpx
+
+# Reuse client across requests (connection pooling)
+async def make_api_client() -> httpx.AsyncClient:
+    return httpx.AsyncClient(
+        base_url="https://graph.microsoft.com/v1.0",
+        timeout=httpx.Timeout(30.0),
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+async def fetch_data(client: httpx.AsyncClient, endpoint: str) -> dict:
+    response = await client.get(endpoint)
+    response.raise_for_status()
+    return response.json()
+```
+
+## Testing (FastAPI)
+
+```python
+import pytest
+from httpx import AsyncClient, ASGITransport
+from app.main import app
+
+@pytest.fixture
+async def client():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+
+@pytest.mark.asyncio
+async def test_list_items(client: AsyncClient):
+    response = await client.get("/api/v1/items/")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+@pytest.mark.asyncio
+async def test_create_item(client: AsyncClient):
+    response = await client.post("/api/v1/items/", json={"name": "Test"})
+    assert response.status_code == 201
+    assert response.json()["name"] == "Test"
+```
+
 ## Rules
 - Python 3.11+ — use match/case, `tomllib`, `TaskGroup`
-- Pydantic v2 for all data models
+- Pydantic v2 for all data models — use `model_config` not inner `Config` class
 - `ruff` for linting and formatting — no black/flake8/pylint separately
-- `pytest` for tests — no unittest
+- `pytest` + `pytest-asyncio` for tests — no unittest
+- `httpx` for async HTTP — not `requests`
+- `aiosqlite` for async SQLite — always use WAL mode
+- FastAPI with `lifespan` — not `on_event` decorators (deprecated)
 - Absolute imports only — no relative `from ..module`
 - No mutable default args: `def fn(items: list = None)` → `None` then assign

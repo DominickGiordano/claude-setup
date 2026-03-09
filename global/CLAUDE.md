@@ -19,10 +19,10 @@
 - Artifacts, skills, agents, and tools for the Areté AI platform
 
 ## Stack
-- **Languages**: TypeScript/JavaScript (primary), Python (secondary)
-- **Frameworks**: Next.js, React, Node.js
+- **Languages**: TypeScript/JavaScript, Python, Elixir, Go, HCL
+- **Frameworks**: Phoenix/Ash, FastAPI, Next.js, React, Node.js
 - **AI**: Anthropic API, Claude Code, MCP servers
-- **Infra**: TBD per project (check project CLAUDE.md)
+- **Infra**: Docker Compose, Traefik, Terraform (check project CLAUDE.md for specifics)
 
 ## Code Defaults
 - TypeScript strict mode
@@ -41,16 +41,19 @@
 
 ## Standard Workflow
 
+**Quick fix** (bug fix, small change, < 30 min): `/fix [description]`
 **Single feature**: `/research` (optional) → `/brainstorm` → `/plan` → `/execute` → `/end-session`
 **Epic (multi-feature)**: `/brainstorm` → `/plan [epic]` → `/orchestrate` → `/plan` each stub → `/execute` each → `/end-session`
 
 Full walkthroughs: `@docs/workflows/feature-workflow.md`, `@docs/workflows/epic-workflow.md`, `@docs/workflows/research-workflow.md`
 
 Rules:
+- Use `/fix` for small, well-understood changes — it skips brainstorm/plan
 - Run `/research` when evaluating unfamiliar tech before brainstorming
 - Skip brainstorm only if approach is already decided
 - Skip plan only for tiny tasks (single file, no risk, < 30 min)
 - Never execute a plan with status `Draft` — flip to `Ready` first
+- Use `/compound` to capture patterns worth preserving across sessions
 - Always run `/end-session` before closing
 
 ## Memory

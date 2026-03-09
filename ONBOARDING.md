@@ -17,15 +17,22 @@ Requires Node.js >= 18. If you don't have it: `brew install node`.
 
 ## Step 2 — Deploy the Global Config
 
-Clone this repo and run the install script:
+Clone this repo, set up PATH, and install:
 
 ```bash
 git clone [this repo]
 cd claude-setup
-bash install.sh
+
+# One-time: symlink bin/ commands to ~/.local/bin/
+bash setup.sh
+
+# Deploy global config to ~/.claude/
+install-claude-setup
 ```
 
-This copies everything in `global/` to `~/.claude/`. You'll see output for each file installed and a runtime check for Node, Python, and Elixir.
+Options: `--force` (overwrite with backups), `--dry-run` (preview changes).
+
+This copies everything in `global/` to `~/.claude/` — 10 agents, 16 commands, 17 skills, 3 hooks.
 
 ---
 
@@ -46,7 +53,7 @@ Navigate to your project and run:
 
 ```bash
 cd /your/project
-bash /path/to/claude-setup/init-project.sh
+/path/to/claude-setup/bin/init-claude-setup
 ```
 
 Then open Claude Code and run `/setup` — it walks you through filling in the project `CLAUDE.md` interactively.
@@ -60,7 +67,12 @@ claude
 
 ## Step 5 — Understand the Workflow
 
-There are two pipelines depending on scope:
+There are three pipelines depending on scope:
+
+**Quick fix** (bug fix, small change, < 30 min):
+```
+/fix [description]  ← implement, test, review in one shot
+```
 
 **Single feature** (most work):
 ```
@@ -100,6 +112,7 @@ You don't invoke most agents directly — Claude delegates automatically based o
 | `orchestrator` | `/orchestrate [epic]` |
 | `executor` | `/execute [feature]` |
 | `code-reviewer` | Auto after execute, or "review this" |
+| `compounder` | `/compound [pattern]` |
 | `debugger` | "debug this error" / "why is X broken" |
 | `memory-updater` | `/end-session` |
 | `meta-agent` | "create an agent that does X" |
@@ -114,11 +127,29 @@ You don't invoke most agents directly — Claude delegates automatically based o
 ```
 Loads last session context — what was in flight, what's next.
 
+If memory feels stale (skipped `/end-session` last time):
+```
+/sync-memory
+```
+Backfills session-log from git history and updates current focus.
+
 **End every session:**
 ```
 /end-session
 ```
 Logs what was built, decisions made, next steps. Updates `CLAUDE.md` current focus. Takes 30 seconds and saves 10 minutes next session.
+
+**Capture a pattern mid-session:**
+```
+/compound [description of what you learned]
+```
+Saves to `docs/solutions/` — builds institutional memory across sessions.
+
+**Check plan status:**
+```
+/status
+```
+Shows all plan docs with their current status.
 
 **Quick memory save:**
 Type `# [thing to remember]` anywhere in Claude Code — saves to the most relevant memory file instantly.
@@ -151,9 +182,10 @@ Never commit `.env` files. Never hardcode secrets. Infisical only.
 
 After a few sessions you should have:
 - `docs/plans/` with plan docs that show your decision history
-- `docs/spikes/` with research that informed those decisions  
+- `docs/spikes/` with research that informed those decisions
+- `docs/solutions/` with patterns captured via `/compound`
 - `.claude/memory/session-log.md` with a running log of what was built
 - `.claude/CLAUDE.md` with an accurate "Current Focus" section
 - PRs with clear plan docs linked as context
 
-The system gets smarter as you use it. Add skills when you find yourself re-explaining patterns. Add agents when you see repeated workflows. Use the meta-agent — it's what it's there for.
+The system gets smarter as you use it. Add skills when you find yourself re-explaining patterns. Add agents when you see repeated workflows. Use `/compound` to capture patterns worth preserving. Use the meta-agent — it's what it's there for.

@@ -21,10 +21,29 @@ For every review, check:
 - No unsanitized user inputs hitting databases or shell commands
 - No overly permissive access patterns
 
-**TypeScript Quality**
+**Language-Specific Quality**
+
+TypeScript:
 - Strict types — no `any` unless justified
 - Proper return types on functions
 - No type assertions masking real problems
+
+Python:
+- Type hints on all functions
+- Pydantic models for data validation, not raw dicts
+- `httpx` for async HTTP, not `requests`
+- `ruff` clean
+
+Elixir:
+- Pattern matching over conditionals
+- Proper use of `with` chains
+- Ash resource conventions followed
+- No raw Ecto when Ash actions exist
+
+Terraform:
+- No hardcoded values — use variables
+- Proper resource naming conventions
+- State management patterns followed
 
 **Code Clarity**
 - Functions do one thing
@@ -33,8 +52,9 @@ For every review, check:
 
 **Performance**
 - No obvious N+1 patterns
-- Async/await used correctly
+- Async/await used correctly (TS/Python)
 - No unnecessary re-renders (React)
+- Proper use of preloads/calculations (Ash)
 
 ## Output Format
 **Summary**: One sentence on overall quality.

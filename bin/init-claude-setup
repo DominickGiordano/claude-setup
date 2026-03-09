@@ -85,7 +85,7 @@ echo ""
 # Create dirs
 if [[ "$DRY_RUN" == "false" ]]; then
   mkdir -p "$PROJECT_DIR"/.claude/{agents,skills,commands,memory}
-  mkdir -p "$PROJECT_DIR"/docs/workflows
+  mkdir -p "$PROJECT_DIR"/docs/{workflows,plans,spikes,solutions}
 fi
 
 # Copy template files

@@ -6,9 +6,10 @@ Dominick's Claude Code configuration for Areté. Gives every dev a shared, consi
 
 ## What This Gives You
 
-- **A workflow** — brainstorm → plan doc → execute → session memory. Not just "ask Claude things."
-- **Shared agents** — planner, executor, orchestrator, reviewer, debugger. Each with a single job.
-- **Persistent memory** — session logs that survive between Claude Code sessions.
+- **Three workflows** — `/fix` for quick changes, brainstorm → plan → execute for features, orchestrate for epics.
+- **10 agents** — planner, executor, orchestrator, reviewer, compounder, debugger, and more. Each with a single job.
+- **17 skills** — Python/FastAPI, Elixir/Phoenix, Graph API, Docker/Traefik, Anthropic SDK, and more.
+- **Persistent memory** — session logs, pattern docs, and plan history that survive between sessions.
 - **Project scaffolding** — `.claude/` and `docs/` structure ready to go in any repo.
 
 ---
@@ -19,14 +20,31 @@ Dominick's Claude Code configuration for Areté. Gives every dev a shared, consi
 
 ### Quick install
 ```bash
-bash install.sh          # deploy global config to ~/.claude
-bash init-project.sh     # scaffold .claude/ in a project (run from project root)
-claude && /setup         # interactive project setup
+git clone [this repo] && cd claude-setup
+
+# One-time: symlink bin/ commands to ~/.local/bin/
+bash setup.sh
+
+# Deploy global config
+install-claude-setup          # copies global/ to ~/.claude/
+
+# In any project:
+cd /your/project
+init-claude-setup             # scaffolds .claude/ + docs/
+claude && /setup              # interactive project setup
 ```
+
+Options: `--force` (overwrite with backups), `--dry-run` (preview changes)
 
 ---
 
 ## Daily Workflow
+
+### Quick fix (small tasks, < 30 min)
+
+```
+/fix [description]          read → implement → test → review → done
+```
 
 ### Single feature
 
@@ -62,6 +80,7 @@ Full walkthroughs with examples: `docs/workflows/feature-workflow.md` and `docs/
 | `orchestrator` | Breaks epic into feature plan stubs, shows dependency order | `/orchestrate [epic]` |
 | `executor` | Delegation preview → execute → handles `Blocked` status + resume | `/execute [feature]` |
 | `code-reviewer` | Reviews for quality, security, correctness | Auto after execute, or explicit |
+| `compounder` | Captures patterns into reusable solution docs | `/compound [pattern]` |
 | `debugger` | Root cause analysis | "debug this" / "why is X broken" |
 | `memory-updater` | Session log + updates `CLAUDE.md` Current Focus | `/end-session` |
 | `meta-agent` | Builds new agents from a description | "use meta-agent to create..." |
@@ -74,14 +93,21 @@ Full walkthroughs with examples: `docs/workflows/feature-workflow.md` and `docs/
 
 | Command | Does |
 |---------|------|
+| `/fix [description]` | Quick fix — implement, test, review in one shot |
 | `/research [topic]` | Spike doc → `docs/spikes/[topic].md` |
 | `/brainstorm [topic]` | Explore options → `docs/plans/[topic]-brainstorm.md` |
 | `/plan [topic]` | Write plan doc → `docs/plans/[feature].md` |
 | `/orchestrate [epic]` | Break epic into feature plan stubs |
 | `/execute [feature]` | Delegation preview → execute |
+| `/compound [pattern]` | Document a pattern → `docs/solutions/[category]/[name].md` |
+| `/review` | Review + auto-fix changed code |
+| `/test` | Run tests, diagnose + fix failures |
+| `/commit` | Stage + commit with structured message |
+| `/pr` | Prepare pull request description |
+| `/status` | Show all plan docs with status + solution counts |
+| `/sync-memory` | Backfill session-log from git when /end-session was skipped |
 | `/catchup` | Resume context from last session |
 | `/end-session` | Log session, update Current Focus, clear dirty-files |
-| `/pr` | Prepare pull request description |
 | `/setup` | Interactive project setup for new devs |
 
 ## Skills
@@ -90,15 +116,17 @@ Skills are reference docs Claude uses when writing code. They're not auto-loaded
 
 | Skill | Use for |
 |-------|---------|
-| `ts-component` | React/TypeScript component templates |
-| `api-route` | Next.js API routes and server actions |
-| `anthropic-api` | Anthropic SDK patterns, models, streaming |
-| `mcp` | MCP server/client patterns (TypeScript + Python) |
-| `nodejs` | Node.js async, error handling, module patterns |
-| `python` | Python 3.11+, pydantic, async, ruff |
+| `anthropic-api` | Anthropic SDK patterns (TS + Python), streaming, tool_use |
+| `python` | Python 3.11+, FastAPI, pydantic v2, httpx, aiosqlite |
+| `microsoft-graph` | Graph API — mail, webhooks, MSAL auth, permissions |
+| `docker-deploy` | Docker Compose + Traefik, health checks, SSL, blue/green deploy |
 | `elixir` | Elixir modules, GenServer, OTP, Ecto |
 | `phoenix` | Phoenix controllers, LiveView, plugs, router |
 | `terraform` | IaC patterns, state config, safe resource patterns |
+| `mcp` | MCP server/client patterns (TypeScript + Python) |
+| `ts-component` | React/TypeScript component templates |
+| `api-route` | Next.js API routes and server actions |
+| `nodejs` | Node.js async, error handling, module patterns |
 | `infisical` | Secrets management, CLI, SDK integration |
 | `testing` | Jest, pytest, ExUnit patterns per language |
 | `error-handling` | Typed errors, result patterns, API error shapes |
@@ -147,6 +175,13 @@ Claude has no memory between sessions by default. This setup adds it:
     ├── plans/                  ← plan docs (versioned, in git)
     │   ├── [feature].md
     │   └── [epic].md
+    ├── spikes/                 ← research spike docs from /research
+    │   └── [topic].md
+    ├── solutions/              ← pattern docs from /compound (institutional memory)
+    │   ├── auth/
+    │   ├── api/
+    │   ├── deployment/
+    │   └── [category]/[pattern].md
     └── workflows/              ← workflow walkthroughs (human + Claude reference)
         ├── feature-workflow.md
         └── epic-workflow.md
