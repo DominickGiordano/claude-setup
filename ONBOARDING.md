@@ -4,155 +4,249 @@ New to Claude Code at Areté? Start here. This gets you from zero to productive 
 
 ---
 
-## Step 1 — Install Claude Code
+## Prerequisites
 
-```bash
-npm install -g @anthropic-ai/claude-code
-claude --version  # verify
-```
+You need these installed before starting:
 
-Requires Node.js >= 18. If you don't have it: `brew install node`.
+| Tool | Install | Verify |
+|------|---------|--------|
+| **Node.js** (>= 18) | `brew install node` | `node --version` |
+| **Claude Code** | `npm install -g @anthropic-ai/claude-code` | `claude --version` |
+| **Git** | Already installed on macOS | `git --version` |
+
+Optional (for specific project stacks):
+- **Python 3.11+**: `brew install python@3.12`
+- **Elixir**: `brew install elixir`
+- **Terraform**: `brew install terraform`
 
 ---
 
-## Step 2 — Deploy the Global Config
-
-Clone this repo, set up PATH, and install:
+## Step 1 — Clone This Repo
 
 ```bash
-git clone [this repo]
+git clone <this-repo-url>
 cd claude-setup
+```
 
-# One-time: symlink bin/ commands to ~/.local/bin/
+This repo contains all shared agents, commands, skills, and hooks. You'll pull updates from it over time.
+
+---
+
+## Step 2 — Set Up the CLI Commands
+
+```bash
 bash setup.sh
+```
 
-# Deploy global config to ~/.claude/
+This symlinks three commands to `~/.local/bin/` so they work from any directory:
+- `install-claude-setup` — deploy global config to `~/.claude/`
+- `init-claude-setup` — scaffold a project for Claude Code
+- `update-claude-setup` — scan projects and surface improvements
+
+If `setup.sh` tells you `~/.local/bin` is not on your PATH, add it:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+---
+
+## Step 3 — Install the Global Config
+
+```bash
 install-claude-setup
 ```
 
-Options: `--force` (overwrite with backups), `--dry-run` (preview changes).
+This copies everything in `global/` to `~/.claude/`:
+- **10 agents** — brainstorm, planner, executor, orchestrator, researcher, code-reviewer, compounder, debugger, memory-updater, meta-agent
+- **16 commands** — `/fix`, `/brainstorm`, `/plan`, `/execute`, `/compound`, `/review`, `/test`, `/commit`, `/pr`, and more
+- **17 skills** — Python/FastAPI, Elixir/Phoenix, Graph API, Docker/Traefik, Anthropic SDK, and more
+- **3 hooks** — file change tracking, session-end logging, bash safety guard
 
-This copies everything in `global/` to `~/.claude/` — 10 agents, 16 commands, 17 skills, 3 hooks.
-
----
-
-## Step 3 — Update Your Identity
-
-Open `~/.claude/CLAUDE.md` and update:
-- Your name
-- Your role
-- Any stack differences from the defaults
-
-The rest (workflow rules, code defaults, agents) is shared — don't change those unless you're intentionally updating team standards.
+Options: `--force` (overwrite existing files, with backups), `--dry-run` (preview without changing anything).
 
 ---
 
-## Step 4 — Init Your Project
+## Step 4 — Personalize Your Identity
 
-Navigate to your project and run:
+Open `~/.claude/CLAUDE.md` and update the top section:
 
-```bash
-cd /your/project
-/path/to/claude-setup/bin/init-claude-setup
+```markdown
+## Identity
+- **Name**: [Your name]
+- **Role**: [Your role]
+- **Org**: Areté Capital Partners (ACP)
 ```
 
-Then open Claude Code and run `/setup` — it walks you through filling in the project `CLAUDE.md` interactively.
+Also update the **Stack** section if your daily work differs from the defaults. Everything else (workflow rules, code defaults) is shared — don't change those unless updating team standards.
+
+---
+
+## Step 5 — Initialize Your First Project
+
+Navigate to any project repo and run:
+
+```bash
+cd /path/to/your/project
+init-claude-setup
+```
+
+This creates:
+```
+.claude/
+├── CLAUDE.md               ← project context — YOU fill this in
+├── settings.json            ← project hooks
+├── agents/                  ← project-specific agents (optional)
+├── skills/                  ← project-specific skills (optional)
+├── commands/                ← project-specific commands (optional)
+└── memory/
+    ├── session-log.md       ← session history (gitignored)
+    └── dirty-files          ← changed files buffer (gitignored)
+docs/
+├── architecture.md          ← system design doc
+├── plans/                   ← plan docs from /plan
+├── spikes/                  ← research docs from /research
+├── solutions/               ← pattern docs from /compound
+└── workflows/               ← workflow reference docs
+```
+
+Then start Claude Code and run the interactive setup:
 
 ```bash
 claude
 /setup
 ```
 
+This walks you through filling in `.claude/CLAUDE.md` with your project's stack, key paths, and conventions. **This is the most important file** — it's what Claude reads at the start of every session.
+
 ---
 
-## Step 5 — Understand the Workflow
+## Step 6 — Learn the Three Workflows
 
-There are three pipelines depending on scope:
+### Quick Fix (bug fix, small change, < 30 min)
+```
+/fix [description]
+```
+Reads context → implements the fix → runs tests → runs review → done. No plan doc needed.
 
-**Quick fix** (bug fix, small change, < 30 min):
+### Single Feature (most daily work)
 ```
-/fix [description]  ← implement, test, review in one shot
-```
-
-**Single feature** (most work):
-```
-/research [topic]   ← optional, for unfamiliar tech
-/brainstorm [topic] ← explore options
-/plan [option]      ← write the plan doc
-/execute [feature]  ← build it
-/end-session        ← log what happened
+/research [topic]       ← optional: spike doc for unfamiliar tech
+/brainstorm [topic]     ← explore 2-3 approaches
+/plan [chosen option]   ← write docs/plans/[feature].md
+/execute [feature]      ← delegation preview → you approve → Claude builds it
+/end-session            ← log what happened
 ```
 
-**Epic (multi-feature)**:
+### Epic (multi-feature work)
 ```
-/brainstorm [epic]     ← architecture-level options
-/plan [epic]           ← high-level plan with sub-features
-/orchestrate [epic]    ← creates feature plan stubs + dependency order
-/plan each stub        ← flesh out each feature plan
-/execute each feature  ← build them
+/brainstorm [epic]      ← architecture-level exploration
+/plan [epic]            ← high-level plan with sub-features
+/orchestrate [epic]     ← creates feature plan stubs + shows dependency order
+/plan [each feature]    ← flesh out each sub-feature plan
+/execute [each feature] ← build them one by one
 /end-session
 ```
 
-Full walkthroughs with examples:
-- `docs/workflows/feature-workflow.md`
-- `docs/workflows/epic-workflow.md`
-- `docs/workflows/research-workflow.md`
+**When to use which:**
+- Bug fix or config change? → `/fix`
+- New feature with clear approach? → Skip brainstorm, go straight to `/plan`
+- New feature, unclear approach? → Full pipeline starting with `/brainstorm`
+- Large system change? → Epic pipeline with `/orchestrate`
 
 ---
 
-## Step 6 — Learn the Agents
+## Step 7 — Learn the Agents
 
-You don't invoke most agents directly — Claude delegates automatically based on what you ask. But knowing what exists helps you work with the system:
+You don't invoke agents directly — they're triggered by commands. But knowing what exists helps:
 
-| Agent | Triggered by |
-|-------|-------------|
-| `researcher` | `/research [topic]` |
-| `brainstorm` | `/brainstorm [topic]` |
-| `planner` | `/plan [topic]` |
-| `orchestrator` | `/orchestrate [epic]` |
-| `executor` | `/execute [feature]` |
-| `code-reviewer` | Auto after execute, or "review this" |
-| `compounder` | `/compound [pattern]` |
-| `debugger` | "debug this error" / "why is X broken" |
-| `memory-updater` | `/end-session` |
-| `meta-agent` | "create an agent that does X" |
+| Agent | What it does | Triggered by |
+|-------|-------------|-------------|
+| `researcher` | Tech spikes → `docs/spikes/` | `/research [topic]` |
+| `brainstorm` | Explores options, converges to 2-3 | `/brainstorm [topic]` |
+| `planner` | Writes plan docs | `/plan [topic]` |
+| `orchestrator` | Breaks epics into feature plans | `/orchestrate [epic]` |
+| `executor` | Builds from plan docs | `/execute [feature]` |
+| `code-reviewer` | Quality, security, correctness review | Auto after execute, or `/review` |
+| `compounder` | Captures patterns into solution docs | `/compound [pattern]` |
+| `debugger` | Root cause analysis | "debug this" / "why is X broken" |
+| `memory-updater` | Session summaries + updates CLAUDE.md | `/end-session` |
+| `meta-agent` | Creates new agents | "create an agent that does X" |
+
+**Key rule**: The executor won't touch a plan with status `Draft`. Review the plan, then set status to `Ready`.
 
 ---
 
-## Step 7 — Daily Habits
+## Step 8 — All Commands Reference
 
-**Start every session:**
+### Workflow Commands
+| Command | Does |
+|---------|------|
+| `/fix [description]` | Quick fix — implement, test, review in one shot |
+| `/research [topic]` | Spike doc → `docs/spikes/[topic].md` |
+| `/brainstorm [topic]` | Explore options → `docs/plans/[topic]-brainstorm.md` |
+| `/plan [topic]` | Write plan doc → `docs/plans/[feature].md` |
+| `/orchestrate [epic]` | Break epic into feature plan stubs |
+| `/execute [feature]` | Delegation preview → execute |
+
+### Code Quality Commands
+| Command | Does |
+|---------|------|
+| `/review` | Review + auto-fix changed code |
+| `/test` | Run tests, diagnose + fix failures |
+| `/commit` | Stage + commit with structured message |
+| `/pr` | Create pull request with description |
+
+### Knowledge & Memory Commands
+| Command | Does |
+|---------|------|
+| `/compound [pattern]` | Document a pattern → `docs/solutions/[category]/[name].md` |
+| `/catchup` | Resume context from last session |
+| `/sync-memory` | Backfill session-log from git (when /end-session was skipped) |
+| `/status` | Show all plan docs with status + solution counts |
+| `/end-session` | Log session, update Current Focus, clear dirty-files |
+
+### Setup Commands
+| Command | Does |
+|---------|------|
+| `/setup` | Interactive project setup for new devs |
+
+---
+
+## Step 9 — Daily Habits
+
+### Start of session
 ```
 /catchup
 ```
-Loads last session context — what was in flight, what's next.
+Loads last session context — what was in flight, what's next. If it feels stale (you forgot `/end-session` last time), run `/sync-memory` first.
 
-If memory feels stale (skipped `/end-session` last time):
-```
-/sync-memory
-```
-Backfills session-log from git history and updates current focus.
+### During session
+- Use `/fix`, `/plan`, `/execute` as needed
+- Run `/compound [description]` when you learn something worth preserving
+- Run `/review` before committing, `/test` to verify
+- Use `/commit` when ready to save progress
 
-**End every session:**
+### End of session
 ```
 /end-session
 ```
-Logs what was built, decisions made, next steps. Updates `CLAUDE.md` current focus. Takes 30 seconds and saves 10 minutes next session.
+Takes 30 seconds. Saves 10 minutes next session. Logs what was built, decisions made, and next steps. Updates the `Current Focus` section in `.claude/CLAUDE.md`.
 
-**Capture a pattern mid-session:**
-```
-/compound [description of what you learned]
-```
-Saves to `docs/solutions/` — builds institutional memory across sessions.
+---
 
-**Check plan status:**
-```
-/status
-```
-Shows all plan docs with their current status.
+## Updating the System
 
-**Quick memory save:**
-Type `# [thing to remember]` anywhere in Claude Code — saves to the most relevant memory file instantly.
+When the setup repo gets new agents, commands, or skills:
+
+```bash
+cd /path/to/claude-setup
+git pull
+install-claude-setup --force
+```
+
+`--force` overwrites existing files but creates timestamped backups in `~/.claude/.backups/` first.
 
 ---
 
@@ -161,8 +255,8 @@ Type `# [thing to remember]` anywhere in Claude Code — saves to the most relev
 See the `infisical` skill (`@skills/infisical.md`) for full patterns. Short version:
 
 ```bash
-infisical login           # one time
-infisical run --env=dev -- npm run dev   # dev with secrets
+infisical login                            # one time
+infisical run --env=dev -- npm run dev     # dev with secrets
 ```
 
 Never commit `.env` files. Never hardcode secrets. Infisical only.
@@ -171,10 +265,10 @@ Never commit `.env` files. Never hardcode secrets. Infisical only.
 
 ## Getting Help
 
-- Workflow docs: `docs/workflows/`
-- Skills reference: `~/.claude/skills/` and `.claude/skills/`
-- Stuck on something? Ask Claude: "how does X work in this setup" — it can read the workflow docs
-- Want to improve the system? Use the meta-agent and open a PR
+- **Workflow docs**: `docs/workflows/` in any initialized project
+- **Skills reference**: `~/.claude/skills/` (global) and `.claude/skills/` (project)
+- **Ask Claude**: "how does X work in this setup" — it can read the workflow docs
+- **Improve the system**: Use the meta-agent to create new agents/skills, then open a PR
 
 ---
 

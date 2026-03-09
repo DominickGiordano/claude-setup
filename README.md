@@ -16,22 +16,37 @@ Dominick's Claude Code configuration for Areté. Gives every dev a shared, consi
 
 ## Install
 
-**New to this system? See [ONBOARDING.md](./ONBOARDING.md) for a full step-by-step guide.**
+**First time? See [ONBOARDING.md](./ONBOARDING.md) for a detailed walkthrough with prerequisites.**
 
-### Quick install
+### From scratch (new machine)
 ```bash
-git clone [this repo] && cd claude-setup
+# 1. Install Claude Code (requires Node.js >= 18)
+npm install -g @anthropic-ai/claude-code
 
-# One-time: symlink bin/ commands to ~/.local/bin/
+# 2. Clone this repo
+git clone <repo-url>
+cd claude-setup
+
+# 3. Add CLI commands to your PATH (one-time)
 bash setup.sh
+# If prompted, add ~/.local/bin to PATH:
+#   echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
 
-# Deploy global config
-install-claude-setup          # copies global/ to ~/.claude/
+# 4. Deploy global config to ~/.claude/
+install-claude-setup
 
-# In any project:
+# 5. Initialize any project
 cd /your/project
-init-claude-setup             # scaffolds .claude/ + docs/
-claude && /setup              # interactive project setup
+init-claude-setup
+claude
+/setup                        # interactive project setup
+```
+
+### Updating (after pulling new changes)
+```bash
+cd /path/to/claude-setup
+git pull
+install-claude-setup --force  # overwrites with backups in ~/.claude/.backups/
 ```
 
 Options: `--force` (overwrite with backups), `--dry-run` (preview changes)
