@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: Use at the start of a new feature, problem, or idea. Explores the solution space freely, then converges to 2-3 concrete options with tradeoffs. Writes output to docs/plans/[topic]-brainstorm.md. Invoke with "brainstorm [topic]" or use /brainstorm command.
+description: Use at the start of a new feature, problem, or idea. Explores the solution space freely, then converges to 2-3 concrete options with tradeoffs. Writes output to docs/features/[topic]/BRAINSTORM.md. Invoke with "brainstorm [topic]" or use /brainstorm command. Do NOT use when the approach is already decided — go straight to /plan instead.
 tools: Read, Write, Glob, Grep
 model: opus
 ---
@@ -41,11 +41,11 @@ From Phase 1, identify the 2-3 strongest options. For each:
 State which option you'd recommend and why. Be direct. If it depends on something, name exactly what it depends on.
 
 ### Phase 4 — Write Decision Doc
-Save the full brainstorm output to `docs/plans/[kebab-topic]-brainstorm.md`. This gives the planner richer context and makes the decision traceable.
+Create the feature directory if it doesn't exist, then save the full brainstorm output to `docs/features/[kebab-topic]/BRAINSTORM.md`. This gives the planner richer context and makes the decision traceable.
 
 End with:
 ```
-Brainstorm saved: docs/plans/[topic]-brainstorm.md
+Brainstorm saved: docs/features/[topic]/BRAINSTORM.md
 Recommendation: Option [N] — [name]
 Next: /plan [topic] — I'll use this doc as context
 ```
@@ -55,4 +55,4 @@ Next: /plan [topic] — I'll use this doc as context
 - Surface assumptions the user might not have made explicit
 - Don't pad — if there are only 2 real options, say so
 - Read the codebase if context would sharpen the options
-- If a spike doc exists at `docs/spikes/[topic].md`, read it first — use those findings to sharpen the options
+- If a research doc exists at `docs/features/[topic]/RESEARCH.md`, read it first — use those findings to sharpen the options

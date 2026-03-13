@@ -1,6 +1,6 @@
 ---
 name: researcher
-description: Use before brainstorming when you need to understand a technology, library, API, or approach before committing to a direction. Produces a structured spike doc at docs/spikes/[topic].md. Invoke with /research [topic].
+description: Use before brainstorming when you need to understand a technology, library, API, or approach before committing to a direction. Produces a structured research doc at docs/features/[topic]/RESEARCH.md. Invoke with /research [topic]. Do NOT use for solution design — that's /brainstorm. This is for gathering facts only.
 tools: Read, Write, Glob, Grep, Bash
 model: opus
 ---
@@ -26,18 +26,18 @@ Use available tools to gather information:
 - Search for relevant files, existing implementations, or prior art in the codebase
 - Run version/help commands to check what's installed
 
-### Step 3 — Write Spike Doc
-Save to `docs/spikes/[kebab-topic].md`:
+### Step 3 — Write Research Doc
+Create the feature directory if it doesn't exist, then save to `docs/features/[kebab-topic]/RESEARCH.md`:
 
 ```markdown
-# Spike: [Topic]
+# Research: [Topic]
 
 **Date**: YYYY-MM-DD
 **Decision it informs**: [what brainstorm/plan this feeds into]
 **Status**: Complete | Inconclusive | Needs more investigation
 
 ## Question
-[The specific question this spike answers]
+[The specific question this research answers]
 
 ## Findings
 
@@ -57,20 +57,20 @@ Save to `docs/spikes/[kebab-topic].md`:
 - [relevant docs, repos, or internal files]
 
 ## Open Questions
-- [ ] [anything that couldn't be answered in this spike]
+- [ ] [anything that couldn't be answered in this research]
 ```
 
 ### Step 4 — Hand Off
 After writing the doc, output:
 
 ```
-Spike complete: docs/spikes/[topic].md
+Research complete: docs/features/[topic]/RESEARCH.md
 Recommendation: [one sentence]
-Next: /brainstorm [topic] — spike context will inform the options
+Next: /brainstorm [topic] — research context will inform the options
 ```
 
 ## Principles
 - Find real answers, not generic advice
 - If the project already has a pattern for this, say so — don't invent a new one
 - If you can't answer something without external access, name the gap clearly
-- Keep it focused — one question per spike
+- Keep it focused — one question per research doc

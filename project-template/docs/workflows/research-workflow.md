@@ -22,11 +22,13 @@ Skip it when:
 ## The Pipeline
 
 ```
-/research [topic]     → docs/spikes/[topic].md
-/brainstorm [topic]   → reads spike doc automatically, sharper options
-/plan [option]        → docs/plans/[feature].md
+/research [topic]     → docs/features/[topic]/RESEARCH.md
+/brainstorm [topic]   → reads research doc automatically, sharper options
+/plan [option]        → docs/features/[topic]/PLAN.md
 /execute [feature]    → build
 ```
+
+All artifacts land in the same feature folder.
 
 ---
 
@@ -41,19 +43,19 @@ Skip it when:
 The researcher agent will:
 - Check what's already in the codebase (existing patterns, installed deps)
 - Investigate the specific options relevant to your stack
-- Produce `docs/spikes/rate-limiting-options.md` with findings and a recommendation
+- Produce `docs/features/rate-limiting-options/RESEARCH.md` with findings and a recommendation
 
-### 2. Review the spike doc
+### 2. Review the research doc
 
-Read `docs/spikes/rate-limiting-options.md`. The researcher may surface gaps or open questions — resolve those before moving on if they're decision-critical.
+Read `docs/features/rate-limiting-options/RESEARCH.md`. The researcher may surface gaps or open questions — resolve those before moving on if they're decision-critical.
 
-### 3. Brainstorm with spike context
+### 3. Brainstorm with research context
 
 ```
 /brainstorm rate limiting for AI completions endpoint
 ```
 
-The brainstorm agent checks for a spike doc automatically. Your options will be grounded in actual findings rather than generic approaches.
+The brainstorm agent checks for a research doc automatically. Your options will be grounded in actual findings rather than generic approaches.
 
 ### 4. Continue with standard flow
 
@@ -65,9 +67,15 @@ The brainstorm agent checks for a spike doc automatically. Your options will be 
 
 ---
 
-## Spike Doc Location
+## Feature Folder After Full Pipeline
 
-All spike docs live in `docs/spikes/[kebab-topic].md`. They're versioned in git — useful as a record of why decisions were made.
+```
+docs/features/rate-limiting/
+├── RESEARCH.md        ← findings from the spike
+├── BRAINSTORM.md      ← options explored, decision made
+├── PLAN.md            ← implementation plan
+└── EXECUTION_LOG.md   ← step-by-step audit trail
+```
 
 ---
 
@@ -78,15 +86,15 @@ You:        /research Elixir libraries for PDF generation
 
 Researcher: [checks mix.exs for existing deps]
             [investigates: typst, chromic_pdf, pdf_generator, puppeteer via Port]
-            [writes docs/spikes/elixir-pdf-generation.md]
-            
-            Spike complete: docs/spikes/elixir-pdf-generation.md
+            [writes docs/features/elixir-pdf-generation/RESEARCH.md]
+
+            Research complete: docs/features/elixir-pdf-generation/RESEARCH.md
             Recommendation: typst — best maintained, pure Elixir, no external deps
-            Next: /brainstorm PDF generation — spike context will inform the options
+            Next: /brainstorm PDF generation — research context will inform the options
 
 You:        /brainstorm PDF report generation for client exports
 
-Brainstorm: [reads docs/spikes/elixir-pdf-generation.md automatically]
-            [produces options grounded in the spike findings]
-            [saves docs/plans/pdf-generation-brainstorm.md]
+Brainstorm: [reads docs/features/elixir-pdf-generation/RESEARCH.md automatically]
+            [produces options grounded in the research findings]
+            [saves docs/features/pdf-generation/BRAINSTORM.md]
 ```

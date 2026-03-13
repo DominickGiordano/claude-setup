@@ -11,6 +11,7 @@ Dominick's Claude Code configuration for Areté. Gives every dev a shared, consi
 - **17 skills** — Python/FastAPI, Elixir/Phoenix, Graph API, Docker/Traefik, Anthropic SDK, and more.
 - **Persistent memory** — session logs, pattern docs, and plan history that survive between sessions.
 - **Project scaffolding** — `.claude/` and `docs/` structure ready to go in any repo.
+- **Reference docs** — commands, agents, workflows, and file structure documented in every project.
 
 ---
 
@@ -49,7 +50,17 @@ git pull
 install-claude-setup --force  # overwrites with backups in ~/.claude/.backups/
 ```
 
-Options: `--force` (overwrite with backups), `--dry-run` (preview changes)
+### Migrating existing projects (old docs/plans/ + docs/spikes/ structure)
+```bash
+cd /your/project
+init-claude-setup             # auto-detects and migrates old structure
+# or preview first:
+init-claude-setup --dry-run
+# or migrate without scaffolding new files:
+init-claude-setup --migrate-only
+```
+
+Options: `--force` (overwrite with backups), `--dry-run` (preview changes), `--migrate-only` (just migrate old structure)
 
 ---
 
@@ -65,7 +76,7 @@ Options: `--force` (overwrite with backups), `--dry-run` (preview changes)
 
 ```
 /brainstorm [topic]         explore approaches, get 2-3 options
-/plan [chosen option]       writes docs/plans/[feature].md
+/plan [chosen option]       writes docs/features/[feature]/PLAN.md
 /execute [feature-name]     delegation preview → you approve → build
 /end-session                logs learnings, clears dirty-files
 ```
@@ -75,10 +86,19 @@ Options: `--force` (overwrite with backups), `--dry-run` (preview changes)
 ```
 /brainstorm [epic topic]    same as above, but at system/architecture level
 /plan [epic]                writes high-level epic plan with sub-features
-/orchestrate [epic]         creates feature plan docs, shows dependency order
+/orchestrate [epic]         creates feature folders, shows dependency order
                             asks how to run: sequential / parallel / manual
 /execute [feature]          run each feature plan when ready
 /end-session
+```
+
+All artifacts for a feature live together in `docs/features/[name]/`:
+```
+docs/features/my-feature/
+├── RESEARCH.md             ← from /research (optional)
+├── BRAINSTORM.md           ← from /brainstorm (optional)
+├── PLAN.md                 ← from /plan
+└── EXECUTION_LOG.md        ← from /execute (auto-generated audit trail)
 ```
 
 Full walkthroughs with examples: `docs/workflows/feature-workflow.md` and `docs/workflows/epic-workflow.md`
@@ -89,11 +109,11 @@ Full walkthroughs with examples: `docs/workflows/feature-workflow.md` and `docs/
 
 | Agent | Job | Invoke |
 |-------|-----|--------|
-| `researcher` | Tech spikes → `docs/spikes/[topic].md` | `/research [topic]` |
-| `brainstorm` | Explores options, converges to 2-3, saves to `docs/plans/[topic]-brainstorm.md` | `/brainstorm [topic]` |
-| `planner` | Writes `docs/plans/[feature].md`, reads brainstorm + spike docs automatically | `/plan [topic]` |
-| `orchestrator` | Breaks epic into feature plan stubs, shows dependency order | `/orchestrate [epic]` |
-| `executor` | Delegation preview → execute → handles `Blocked` status + resume | `/execute [feature]` |
+| `researcher` | Tech investigation → `docs/features/[topic]/RESEARCH.md` | `/research [topic]` |
+| `brainstorm` | Explores options, converges to 2-3 → `docs/features/[topic]/BRAINSTORM.md` | `/brainstorm [topic]` |
+| `planner` | Writes `docs/features/[feature]/PLAN.md`, reads brainstorm + research docs automatically | `/plan [topic]` |
+| `orchestrator` | Breaks epic into feature folders, shows dependency order | `/orchestrate [epic]` |
+| `executor` | Delegation preview → execute → logs to `EXECUTION_LOG.md` | `/execute [feature]` |
 | `code-reviewer` | Reviews for quality, security, correctness | Auto after execute, or explicit |
 | `compounder` | Captures patterns into reusable solution docs | `/compound [pattern]` |
 | `debugger` | Root cause analysis | "debug this" / "why is X broken" |
@@ -109,17 +129,17 @@ Full walkthroughs with examples: `docs/workflows/feature-workflow.md` and `docs/
 | Command | Does |
 |---------|------|
 | `/fix [description]` | Quick fix — implement, test, review in one shot |
-| `/research [topic]` | Spike doc → `docs/spikes/[topic].md` |
-| `/brainstorm [topic]` | Explore options → `docs/plans/[topic]-brainstorm.md` |
-| `/plan [topic]` | Write plan doc → `docs/plans/[feature].md` |
-| `/orchestrate [epic]` | Break epic into feature plan stubs |
-| `/execute [feature]` | Delegation preview → execute |
+| `/research [topic]` | Research doc → `docs/features/[topic]/RESEARCH.md` |
+| `/brainstorm [topic]` | Explore options → `docs/features/[topic]/BRAINSTORM.md` |
+| `/plan [topic]` | Write plan doc → `docs/features/[feature]/PLAN.md` |
+| `/orchestrate [epic]` | Break epic into feature folders |
+| `/execute [feature]` | Delegation preview → execute with audit trail |
 | `/compound [pattern]` | Document a pattern → `docs/solutions/[category]/[name].md` |
 | `/review` | Review + auto-fix changed code |
 | `/test` | Run tests, diagnose + fix failures |
 | `/commit` | Stage + commit with structured message |
 | `/pr` | Prepare pull request description |
-| `/status` | Show all plan docs with status + solution counts |
+| `/status` | Show all features with status + docs present |
 | `/sync-memory` | Backfill session-log from git when /end-session was skipped |
 | `/catchup` | Resume context from last session |
 | `/end-session` | Log session, update Current Focus, clear dirty-files |
@@ -160,7 +180,7 @@ Claude has no memory between sessions by default. This setup adds it:
 - **`/end-session`** — runs the memory-updater agent to write a proper summary (what was built, decisions, next steps)
 - **`/catchup`** — reads `session-log.md` at session start to restore context
 
-`session-log.md` is gitignored — it's personal to your machine. Plan docs in `docs/plans/` are versioned and shared.
+`session-log.md` is gitignored — it's personal to your machine. Feature docs in `docs/features/` are versioned and shared.
 
 ---
 
@@ -186,20 +206,24 @@ Claude has no memory between sessions by default. This setup adds it:
 │       ├── session-log.md      ← session history (gitignored)
 │       └── dirty-files         ← changed files buffer (gitignored)
 └── docs/
-    ├── architecture.md         ← system design (ad-hoc, @-reference when needed)
-    ├── plans/                  ← plan docs (versioned, in git)
-    │   ├── [feature].md
-    │   └── [epic].md
-    ├── spikes/                 ← research spike docs from /research
-    │   └── [topic].md
+    ├── features/               ← one folder per feature/initiative
+    │   └── [feature-name]/
+    │       ├── RESEARCH.md     ← from /research (optional)
+    │       ├── BRAINSTORM.md   ← from /brainstorm (optional)
+    │       ├── PLAN.md         ← from /plan
+    │       └── EXECUTION_LOG.md ← from /execute (auto-generated)
     ├── solutions/              ← pattern docs from /compound (institutional memory)
-    │   ├── auth/
-    │   ├── api/
-    │   ├── deployment/
     │   └── [category]/[pattern].md
-    └── workflows/              ← workflow walkthroughs (human + Claude reference)
-        ├── feature-workflow.md
-        └── epic-workflow.md
+    ├── reference/              ← system docs (commands, agents, workflows, file structure)
+    │   ├── commands.md
+    │   ├── agents.md
+    │   ├── workflows.md
+    │   └── file-structure.md
+    ├── workflows/              ← workflow walkthroughs (human + Claude reference)
+    │   ├── feature-workflow.md
+    │   ├── epic-workflow.md
+    │   └── research-workflow.md
+    └── architecture.md         ← system design (ad-hoc, @-reference when needed)
 ```
 
 ---
@@ -208,13 +232,15 @@ Claude has no memory between sessions by default. This setup adds it:
 
 **Keep `.claude/CLAUDE.md` current.** It's what Claude knows about your project at session start. If it's stale, Claude will make wrong assumptions. Takes 2 minutes to update — do it.
 
-**Plan docs are the record of decisions.** Don't delete them when a feature is done — set status to `Done`. They're useful context for future sessions and new devs.
+**Feature docs are the record of decisions.** Don't delete them when a feature is done — set status to `Done`. They're useful context for future sessions and new devs.
 
 **The `#` shortcut saves memory fast.** In Claude Code, type `# [thing to remember]` and it saves to the most relevant memory file instantly.
 
 **Project agents override global ones.** If you need different reviewer behavior for a specific project, drop a `code-reviewer.md` in `.claude/agents/` and it takes precedence.
 
 **Add skills as patterns emerge.** Every time you find yourself explaining the same pattern to Claude, that's a skill. Use the meta-agent to create it.
+
+**Reference docs are your wiki.** Every project gets `docs/reference/` with commands, agents, workflows, and file structure docs. `@`-reference them when needed.
 
 ---
 

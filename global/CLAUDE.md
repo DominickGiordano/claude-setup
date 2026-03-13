@@ -56,7 +56,17 @@ Rules:
 - Use `/compound` to capture patterns worth preserving across sessions
 - Always run `/end-session` before closing
 
+## Reference Docs
+- `@docs/reference/commands.md` — what each command does and when to use it
+- `@docs/reference/agents.md` — what each agent does and how they're invoked
+- `@docs/reference/workflows.md` — decision tree for picking the right pipeline
+- `@docs/reference/file-structure.md` — where everything lives and why
+
 ## Memory
 - Session learnings should be appended to `.claude/memory/session-log.md` in the active project
 - Use the `#` shortcut to add quick memory items during sessions
 - Run `/end-session` before closing to summarize and commit learnings
+
+## Lessons
+<!-- Add rules here when Claude makes a mistake worth preventing. -->
+<!-- Format: "Do NOT [wrong thing]. Instead, [correct thing]." -->

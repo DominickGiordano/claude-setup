@@ -60,7 +60,7 @@ install-claude-setup
 
 This copies everything in `global/` to `~/.claude/`:
 - **10 agents** — brainstorm, planner, executor, orchestrator, researcher, code-reviewer, compounder, debugger, memory-updater, meta-agent
-- **16 commands** — `/fix`, `/brainstorm`, `/plan`, `/execute`, `/compound`, `/review`, `/test`, `/commit`, `/pr`, and more
+- **18 commands** — `/fix`, `/brainstorm`, `/plan`, `/execute`, `/compound`, `/review`, `/test`, `/commit`, `/pr`, and more
 - **17 skills** — Python/FastAPI, Elixir/Phoenix, Graph API, Docker/Traefik, Anthropic SDK, and more
 - **3 hooks** — file change tracking, session-end logging, bash safety guard
 
@@ -104,12 +104,14 @@ This creates:
     ├── session-log.md       ← session history (gitignored)
     └── dirty-files          ← changed files buffer (gitignored)
 docs/
-├── architecture.md          ← system design doc
-├── plans/                   ← plan docs from /plan
-├── spikes/                  ← research docs from /research
+├── features/                ← one folder per feature (RESEARCH, BRAINSTORM, PLAN, EXECUTION_LOG)
 ├── solutions/               ← pattern docs from /compound
-└── workflows/               ← workflow reference docs
+├── reference/               ← system docs (commands, agents, workflows, file structure)
+├── workflows/               ← workflow walkthroughs with examples
+└── architecture.md          ← system design doc
 ```
+
+**If your project has the old structure** (`docs/plans/`, `docs/spikes/`), init will auto-migrate files to `docs/features/` for you.
 
 Then start Claude Code and run the interactive setup:
 
@@ -132,18 +134,20 @@ Reads context → implements the fix → runs tests → runs review → done. No
 
 ### Single Feature (most daily work)
 ```
-/research [topic]       ← optional: spike doc for unfamiliar tech
+/research [topic]       ← optional: investigate unfamiliar tech first
 /brainstorm [topic]     ← explore 2-3 approaches
-/plan [chosen option]   ← write docs/plans/[feature].md
+/plan [chosen option]   ← writes docs/features/[feature]/PLAN.md
 /execute [feature]      ← delegation preview → you approve → Claude builds it
 /end-session            ← log what happened
 ```
+
+All artifacts land in one folder: `docs/features/[feature-name]/`
 
 ### Epic (multi-feature work)
 ```
 /brainstorm [epic]      ← architecture-level exploration
 /plan [epic]            ← high-level plan with sub-features
-/orchestrate [epic]     ← creates feature plan stubs + shows dependency order
+/orchestrate [epic]     ← creates sub-feature folders + shows dependency order
 /plan [each feature]    ← flesh out each sub-feature plan
 /execute [each feature] ← build them one by one
 /end-session
@@ -163,11 +167,11 @@ You don't invoke agents directly — they're triggered by commands. But knowing 
 
 | Agent | What it does | Triggered by |
 |-------|-------------|-------------|
-| `researcher` | Tech spikes → `docs/spikes/` | `/research [topic]` |
+| `researcher` | Tech investigation → `RESEARCH.md` | `/research [topic]` |
 | `brainstorm` | Explores options, converges to 2-3 | `/brainstorm [topic]` |
 | `planner` | Writes plan docs | `/plan [topic]` |
-| `orchestrator` | Breaks epics into feature plans | `/orchestrate [epic]` |
-| `executor` | Builds from plan docs | `/execute [feature]` |
+| `orchestrator` | Breaks epics into feature folders | `/orchestrate [epic]` |
+| `executor` | Builds from plan docs, logs to `EXECUTION_LOG.md` | `/execute [feature]` |
 | `code-reviewer` | Quality, security, correctness review | Auto after execute, or `/review` |
 | `compounder` | Captures patterns into solution docs | `/compound [pattern]` |
 | `debugger` | Root cause analysis | "debug this" / "why is X broken" |
@@ -175,6 +179,8 @@ You don't invoke agents directly — they're triggered by commands. But knowing 
 | `meta-agent` | Creates new agents | "create an agent that does X" |
 
 **Key rule**: The executor won't touch a plan with status `Draft`. Review the plan, then set status to `Ready`.
+
+For full details, check `docs/reference/agents.md` in any initialized project.
 
 ---
 
@@ -184,11 +190,11 @@ You don't invoke agents directly — they're triggered by commands. But knowing 
 | Command | Does |
 |---------|------|
 | `/fix [description]` | Quick fix — implement, test, review in one shot |
-| `/research [topic]` | Spike doc → `docs/spikes/[topic].md` |
-| `/brainstorm [topic]` | Explore options → `docs/plans/[topic]-brainstorm.md` |
-| `/plan [topic]` | Write plan doc → `docs/plans/[feature].md` |
-| `/orchestrate [epic]` | Break epic into feature plan stubs |
-| `/execute [feature]` | Delegation preview → execute |
+| `/research [topic]` | Research doc → `docs/features/[topic]/RESEARCH.md` |
+| `/brainstorm [topic]` | Explore options → `docs/features/[topic]/BRAINSTORM.md` |
+| `/plan [topic]` | Write plan doc → `docs/features/[feature]/PLAN.md` |
+| `/orchestrate [epic]` | Break epic into feature folders |
+| `/execute [feature]` | Delegation preview → execute with audit trail |
 
 ### Code Quality Commands
 | Command | Does |
@@ -204,13 +210,15 @@ You don't invoke agents directly — they're triggered by commands. But knowing 
 | `/compound [pattern]` | Document a pattern → `docs/solutions/[category]/[name].md` |
 | `/catchup` | Resume context from last session |
 | `/sync-memory` | Backfill session-log from git (when /end-session was skipped) |
-| `/status` | Show all plan docs with status + solution counts |
+| `/status` | Show all features with status + docs present |
 | `/end-session` | Log session, update Current Focus, clear dirty-files |
 
 ### Setup Commands
 | Command | Does |
 |---------|------|
 | `/setup` | Interactive project setup for new devs |
+
+For the full reference with decision trees, check `docs/reference/commands.md` in any initialized project.
 
 ---
 
@@ -227,6 +235,7 @@ Loads last session context — what was in flight, what's next. If it feels stal
 - Run `/compound [description]` when you learn something worth preserving
 - Run `/review` before committing, `/test` to verify
 - Use `/commit` when ready to save progress
+- Run `/status` to see what's in flight across all features
 
 ### End of session
 ```
@@ -248,6 +257,14 @@ install-claude-setup --force
 
 `--force` overwrites existing files but creates timestamped backups in `~/.claude/.backups/` first.
 
+To migrate existing projects to the new `docs/features/` structure:
+
+```bash
+cd /your/project
+init-claude-setup --migrate-only --dry-run  # preview what would change
+init-claude-setup --migrate-only            # do it
+```
+
 ---
 
 ## Secrets — Always Infisical
@@ -265,9 +282,10 @@ Never commit `.env` files. Never hardcode secrets. Infisical only.
 
 ## Getting Help
 
-- **Workflow docs**: `docs/workflows/` in any initialized project
+- **Reference docs**: `docs/reference/` in any initialized project (commands, agents, workflows, file structure)
+- **Workflow docs**: `docs/workflows/` in any initialized project (step-by-step with examples)
 - **Skills reference**: `~/.claude/skills/` (global) and `.claude/skills/` (project)
-- **Ask Claude**: "how does X work in this setup" — it can read the workflow docs
+- **Ask Claude**: "how does X work in this setup" — it can read the reference and workflow docs
 - **Improve the system**: Use the meta-agent to create new agents/skills, then open a PR
 
 ---
@@ -275,8 +293,7 @@ Never commit `.env` files. Never hardcode secrets. Infisical only.
 ## What Good Looks Like
 
 After a few sessions you should have:
-- `docs/plans/` with plan docs that show your decision history
-- `docs/spikes/` with research that informed those decisions
+- `docs/features/` with folders showing the full lifecycle of each piece of work
 - `docs/solutions/` with patterns captured via `/compound`
 - `.claude/memory/session-log.md` with a running log of what was built
 - `.claude/CLAUDE.md` with an accurate "Current Focus" section

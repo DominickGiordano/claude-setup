@@ -3,6 +3,7 @@
 # Scaffolds .claude/ and docs/ in the current project directory.
 # Run from your project root.
 # Safe by default — never overwrites existing files.
+# Auto-migrates old structure (docs/plans/, docs/spikes/) to docs/features/.
 
 set -euo pipefail
 
@@ -12,24 +13,27 @@ PROJECT_DIR="$(pwd)"
 PROJECT_NAME="$(basename "$PROJECT_DIR")"
 
 usage() {
-  echo "Usage: init-claude-setup [--force]"
+  echo "Usage: init-claude-setup [--force] [--migrate-only]"
   echo ""
   echo "Scaffolds .claude/ and docs/ for Claude Code in the current project."
   echo ""
   echo "Options:"
-  echo "  --force    Overwrite existing files (creates backups first)"
-  echo "  --dry-run  Show what would be done without doing it"
-  echo "  --help     Show this help"
+  echo "  --force         Overwrite existing files (creates backups first)"
+  echo "  --migrate-only  Only run migration from old structure, don't scaffold"
+  echo "  --dry-run       Show what would be done without doing it"
+  echo "  --help          Show this help"
 }
 
 FORCE=false
 DRY_RUN=false
+MIGRATE_ONLY=false
 BACKUP_DIR="$PROJECT_DIR/.claude/.backups/$(date +%Y%m%d-%H%M%S)"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --force) FORCE=true; shift ;;
     --dry-run) DRY_RUN=true; shift ;;
+    --migrate-only) MIGRATE_ONLY=true; shift ;;
     --help) usage; exit 0 ;;
     *) echo "Unknown option: $1"; usage; exit 1 ;;
   esac
@@ -75,17 +79,111 @@ copy_if_missing() {
   fi
 }
 
+# --- Migration: docs/plans/ + docs/spikes/ → docs/features/ ---
+migrate_old_structure() {
+  local migrated=0
+
+  # Migrate plan docs: docs/plans/foo.md → docs/features/foo/PLAN.md
+  if [[ -d "$PROJECT_DIR/docs/plans" ]]; then
+    for plan_file in "$PROJECT_DIR"/docs/plans/*.md; do
+      [[ -f "$plan_file" ]] || continue
+      local basename_no_ext
+      basename_no_ext="$(basename "$plan_file" .md)"
+
+      # Handle brainstorm docs: foo-brainstorm.md → docs/features/foo/BRAINSTORM.md
+      if [[ "$basename_no_ext" == *-brainstorm ]]; then
+        local feature_name="${basename_no_ext%-brainstorm}"
+        local target_dir="$PROJECT_DIR/docs/features/$feature_name"
+        local target_file="$target_dir/BRAINSTORM.md"
+      else
+        local feature_name="$basename_no_ext"
+        local target_dir="$PROJECT_DIR/docs/features/$feature_name"
+        local target_file="$target_dir/PLAN.md"
+      fi
+
+      if [[ "$DRY_RUN" == "true" ]]; then
+        log "WOULD MIGRATE: $plan_file → $target_file"
+      else
+        mkdir -p "$target_dir"
+        if [[ ! -f "$target_file" ]]; then
+          mv "$plan_file" "$target_file"
+          log "MIGRATED: $plan_file → $target_file"
+          migrated=$((migrated + 1))
+        else
+          log "SKIP (target exists): $target_file"
+        fi
+      fi
+    done
+  fi
+
+  # Migrate spike docs: docs/spikes/foo.md → docs/features/foo/RESEARCH.md
+  if [[ -d "$PROJECT_DIR/docs/spikes" ]]; then
+    for spike_file in "$PROJECT_DIR"/docs/spikes/*.md; do
+      [[ -f "$spike_file" ]] || continue
+      local basename_no_ext
+      basename_no_ext="$(basename "$spike_file" .md)"
+      local target_dir="$PROJECT_DIR/docs/features/$basename_no_ext"
+      local target_file="$target_dir/RESEARCH.md"
+
+      if [[ "$DRY_RUN" == "true" ]]; then
+        log "WOULD MIGRATE: $spike_file → $target_file"
+      else
+        mkdir -p "$target_dir"
+        if [[ ! -f "$target_file" ]]; then
+          mv "$spike_file" "$target_file"
+          log "MIGRATED: $spike_file → $target_file"
+          migrated=$((migrated + 1))
+        else
+          log "SKIP (target exists): $target_file"
+        fi
+      fi
+    done
+  fi
+
+  # Clean up empty old directories
+  if [[ "$DRY_RUN" == "false" ]]; then
+    for old_dir in "$PROJECT_DIR/docs/plans" "$PROJECT_DIR/docs/spikes"; do
+      if [[ -d "$old_dir" ]] && [[ -z "$(ls -A "$old_dir" 2>/dev/null)" ]]; then
+        rmdir "$old_dir"
+        log "REMOVED empty dir: $old_dir"
+      fi
+    done
+  fi
+
+  if [[ "$migrated" -gt 0 ]]; then
+    log ""
+    log "Migrated $migrated files to docs/features/"
+  fi
+}
+
 echo "init-claude-setup"
 echo "  Project: $PROJECT_NAME"
 echo "  Target:  $PROJECT_DIR"
 [[ "$FORCE" == "true" ]] && echo "  Mode: FORCE (backups to $BACKUP_DIR)"
 [[ "$DRY_RUN" == "true" ]] && echo "  Mode: DRY RUN"
+[[ "$MIGRATE_ONLY" == "true" ]] && echo "  Mode: MIGRATE ONLY"
 echo ""
+
+# Run migration first (always, if old structure exists)
+if [[ -d "$PROJECT_DIR/docs/plans" ]] || [[ -d "$PROJECT_DIR/docs/spikes" ]]; then
+  echo "Migrating old structure..."
+  migrate_old_structure
+  echo ""
+fi
+
+if [[ "$MIGRATE_ONLY" == "true" ]]; then
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo "Dry run complete. No files were changed."
+  else
+    echo "Migration complete."
+  fi
+  exit 0
+fi
 
 # Create dirs
 if [[ "$DRY_RUN" == "false" ]]; then
   mkdir -p "$PROJECT_DIR"/.claude/{agents,skills,commands,memory}
-  mkdir -p "$PROJECT_DIR"/docs/{workflows,plans,spikes,solutions}
+  mkdir -p "$PROJECT_DIR"/docs/{workflows,features,solutions,reference}
 fi
 
 # Copy template files
@@ -98,6 +196,12 @@ copy_if_missing "$TEMPLATE_DIR/docs/architecture.md"           "$PROJECT_DIR/doc
 for f in "$TEMPLATE_DIR"/docs/workflows/*.md; do
   [[ -f "$f" ]] || continue
   copy_if_missing "$f" "$PROJECT_DIR/docs/workflows/$(basename "$f")"
+done
+
+# Copy reference docs
+for f in "$TEMPLATE_DIR"/docs/reference/*.md; do
+  [[ -f "$f" ]] || continue
+  copy_if_missing "$f" "$PROJECT_DIR/docs/reference/$(basename "$f")"
 done
 
 # Add .claude/memory and .claude/.backups to .gitignore

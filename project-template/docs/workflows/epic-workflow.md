@@ -12,6 +12,8 @@
 /brainstorm → /plan [epic] → /orchestrate [epic] → feature plans → /execute each → /end-session
 ```
 
+The epic and all sub-features live under `docs/features/`.
+
 ---
 
 ## When to Use This vs. Standard Workflow
@@ -42,7 +44,7 @@ At epic scale, options are usually architectural (monolith vs. modular, batch vs
 /plan AI reporting system — modular, per-client, exportable
 ```
 
-The epic plan (`docs/plans/ai-reporting.md`) is **high-level only**:
+The epic plan (`docs/features/ai-reporting/PLAN.md`) is **high-level only**:
 - What the system does and why
 - The sub-features it comprises (named, not detailed)
 - Dependencies between sub-features
@@ -86,7 +88,7 @@ The epic plan (`docs/plans/ai-reporting.md`) is **high-level only**:
 ```
 
 The orchestrator agent reads the epic plan and:
-1. Creates a feature plan doc for each sub-feature (`docs/plans/ai-reporting-R1-data-aggregation.md`, etc.)
+1. Creates a feature folder and plan stub for each sub-feature (`docs/features/ai-reporting-R1-data-aggregation/PLAN.md`, etc.)
 2. Shows you the dependency order and proposed execution sequence
 3. **Asks how you want to run it**: sequential, parallel where possible, or manual control
 4. Waits for your go-ahead before anything executes
@@ -114,6 +116,7 @@ The executor:
 - Shows delegation preview for that feature
 - Waits for go-ahead
 - Ticks off steps in the feature plan doc
+- Logs progress to `docs/features/ai-reporting-R1-data-aggregation/EXECUTION_LOG.md`
 - Updates the sub-feature status in the epic plan when done
 
 ---
@@ -125,11 +128,13 @@ The epic plan doc is your source of truth. Sub-feature statuses update as work c
 ```markdown
 | ID  | Feature              | Depends On | Status      |
 |-----|----------------------|------------|-------------|
-| R-1 | Data aggregation     | —          | Done ✅     |
+| R-1 | Data aggregation     | —          | Done        |
 | R-2 | Report generation    | R-1        | In Progress |
 | R-3 | Export (PDF/CSV)     | R-2        | Draft       |
 | R-4 | Client delivery UI   | R-2        | Draft       |
 ```
+
+Run `/status` anytime for a dashboard view of all features.
 
 ---
 
@@ -151,6 +156,7 @@ You:      /brainstorm AI-powered client reporting system
 Claude:   [explores: manual templates, AI-generated summaries, full pipeline]
           [converges to 3 options]
           [recommends: modular pipeline with AI generation + export]
+          Saved: docs/features/ai-reporting/BRAINSTORM.md
 
 You:      go with that. make it exportable to PDF.
 
@@ -158,7 +164,7 @@ Claude:   Run /plan when ready.
 
 You:      /plan AI reporting — modular, AI-generated, PDF export
 
-Claude:   [writes docs/plans/ai-reporting.md — epic plan]
+Claude:   [writes docs/features/ai-reporting/PLAN.md — epic plan]
           4 sub-features identified: data aggregation, report gen,
           PDF export, delivery UI. Set status to Ready when happy.
 
@@ -167,17 +173,17 @@ You:      [reviews, sets Ready]
 
 Claude:   Epic: AI Reporting System
           Sub-feature plans created:
-            docs/plans/ai-reporting-R1-data-aggregation.md
-            docs/plans/ai-reporting-R2-report-generation.md
-            docs/plans/ai-reporting-R3-pdf-export.md
-            docs/plans/ai-reporting-R4-delivery-ui.md
+            docs/features/ai-reporting-R1-data-aggregation/PLAN.md
+            docs/features/ai-reporting-R2-report-generation/PLAN.md
+            docs/features/ai-reporting-R3-pdf-export/PLAN.md
+            docs/features/ai-reporting-R4-delivery-ui/PLAN.md
 
           Dependency order:
             R-1 (no deps) → R-2 (needs R-1) → R-3 + R-4 (parallel, need R-2)
 
           How do you want to run this?
             [A] Sequential — R1 → R2 → R3 → R4
-            [B] Parallel where possible — R1 → R2 → (R3 ∥ R4)
+            [B] Parallel where possible — R1 → R2 → (R3 || R4)
             [C] Manual — I'll execute each myself
 
 You:      B — parallel where possible
