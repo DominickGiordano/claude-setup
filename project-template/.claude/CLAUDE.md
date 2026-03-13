@@ -1,71 +1,51 @@
 # [Project Name]
 
-<!-- First-session checklist — delete this block when done:
-  [ ] Fill in "What This Is" with project purpose and users
-  [ ] Fill in Stack with actual versions
-  [ ] Fill in Key Commands (test what works)
-  [ ] Fill in Important Files with real paths
-  [ ] Add environment variables
-  [ ] Add at least 2 constraints/gotchas
-  [ ] Write a Current Focus paragraph
-  [ ] Delete this checklist
--->
+<!-- FIRST SESSION: Run /setup to fill this in interactively, or do it manually.
+     Delete this comment block when done. -->
 
-> Keep this file lean. Only include things Claude needs in EVERY session.
-> Ad-hoc context belongs in docs/ and gets @-referenced when needed.
+> This file is loaded into every Claude session. Keep it lean and accurate.
+> For how the workflow system works, see `docs/reference/`.
 
 ## What This Is
-[One paragraph: what the project does and who uses it]
+<!-- What does this project do? Who uses it? One paragraph. -->
 
 ## Stack
-- **Runtime**: Node.js [version]
-- **Framework**: Next.js [version] / [other]
-- **Language**: TypeScript (strict)
-- **Database**: [e.g. Postgres via Prisma / Supabase]
-- **Auth**: [e.g. NextAuth / Clerk]
-- **AI**: Anthropic API (`claude-sonnet-4-6` default)
+<!-- List the actual languages, frameworks, and tools. Examples:
+     - Python 3.12, FastAPI, pydantic v2, SQLite (aiosqlite)
+     - Elixir 1.17, Phoenix 1.7, Ash 3.x, Postgres
+     - TypeScript, Next.js 14, React, Prisma
+     - Terraform, HCL, custom Clerk provider
+     - Go 1.22, chi router
+     Delete these comments and replace with your stack. -->
 
 ## Key Commands
-```bash
-npm run dev        # start dev server
-npm run build      # production build
-npm run lint       # ESLint
-npm run typecheck  # tsc --noEmit
-npm test           # run tests
-```
+<!-- What commands does Claude need to build, test, lint, and run this project?
+     Examples:
+       mix test              # run tests
+       pytest -x -v          # run tests
+       npm run dev           # start dev server
+       docker compose up -d  # start services
+     Delete these comments and replace with your commands. -->
 
-## Important Files / Paths
-```
-src/
-  app/             # Next.js App Router pages
-  components/      # shared UI components
-  lib/             # utilities, API clients
-  actions/         # server actions
-docs/
-  features/        # one folder per feature (RESEARCH, BRAINSTORM, PLAN, EXECUTION_LOG)
-  solutions/       # reusable patterns from /compound
-  reference/       # system docs (commands, agents, workflows, file structure)
-.claude/
-  agents/          # project-specific agents
-  skills/          # project-specific skills
-  memory/
-    session-log.md # session history
-```
+## Important Paths
+<!-- Which directories and files matter? Only list non-obvious ones.
+     The docs/ structure is standard across all projects:
+       docs/features/    — one folder per feature (RESEARCH, BRAINSTORM, PLAN, EXECUTION_LOG)
+       docs/solutions/   — reusable patterns from /compound
+       docs/reference/   — system docs (commands, agents, workflows, file structure)
+     Delete these comments and list your project-specific paths. -->
 
-## Environment Variables
-```
-ANTHROPIC_API_KEY=
-# add others here
-```
-
-## Constraints / Watch Out For
-- [e.g. "All DB calls go through src/lib/db.ts — never import prisma directly"]
-- [e.g. "Don't use React Server Components for anything with client state"]
-- [add project-specific gotchas here]
+## Constraints
+<!-- Project-specific rules and gotchas. Things Claude would get wrong without being told.
+     Examples:
+       - All DB queries go through src/lib/db.ts — never import prisma directly
+       - Auth tokens come from Infisical, never hardcode
+       - Don't touch migrations directly — use the CLI
+     Delete these comments and add your constraints. -->
 
 ## Lessons
-<!-- Add rules here when Claude makes a mistake worth preventing next time -->
-<!-- Format: "Do NOT [wrong thing]. Instead, [correct thing]." -->
+<!-- Add rules here when Claude makes a mistake worth preventing next time.
+     Format: "Do NOT [wrong thing]. Instead, [correct thing]." -->
 
 ## Current Focus
-[What's actively being worked on — update each session]
+<!-- What's actively being worked on? Update each session or via /end-session. -->
