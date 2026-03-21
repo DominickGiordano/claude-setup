@@ -68,5 +68,11 @@ Rules:
 - Run `/end-session` before closing to summarize and commit learnings
 
 ## Lessons
-<!-- Add rules here when Claude makes a mistake worth preventing. -->
-<!-- Format: "Do NOT [wrong thing]. Instead, [correct thing]." -->
+- Do NOT put project-specific rules in `~/.claude/CLAUDE.md`. Move them to the project's `.claude/CLAUDE.md` or `.claude/rules/`.
+- Do NOT let project `CLAUDE.md` exceed 200 lines. Split path-specific content to `.claude/rules/` files with `paths:` frontmatter.
+- Do NOT restate linter/formatter rules in CLAUDE.md. Reference the config file instead.
+- Do NOT write long explanatory paragraphs in CLAUDE.md. Use short imperative bullets.
+- Do NOT make changes to multiple files without presenting the full plan first.
+- Do NOT update `CLAUDE.md` without reading it first and checking the line count after.
+- Do NOT create speculative commands, skills, or agents. Build them when the need is confirmed.
+- Do NOT skip `/end-session`. Session memory is how you stay effective across sessions.

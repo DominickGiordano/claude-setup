@@ -12,6 +12,7 @@ your-project/
 │   ├── agents/                ← project-specific agent overrides
 │   ├── skills/                ← project-specific skill references
 │   ├── commands/              ← project-specific commands
+│   ├── rules/                 ← path-scoped rules (loaded per-file match)
 │   └── memory/
 │       ├── session-log.md     ← session history (gitignored)
 │       └── dirty-files        ← changed files buffer (gitignored)
@@ -47,6 +48,32 @@ your-project/
 └── [your source code]
 ```
 
+## Where Does This Rule Go? (Decision Tree)
+
+```
+Is this rule universal across ALL projects?
+  YES → ~/.claude/CLAUDE.md (global)
+  NO  ↓
+
+Does it only apply to certain files or directories?
+  YES → .claude/rules/[name].md with paths: frontmatter
+  NO  ↓
+
+Is it a workflow you trigger on demand?
+  Simple (one job)        → .claude/commands/[name].md
+  Complex (multi-step)    → .claude/skills/[name]/SKILL.md
+  Needs isolated context  → .claude/agents/[name].md
+  ↓
+
+Is it specific to this machine / this engineer?
+  YES → CLAUDE.local.md or .claude/settings.local.json (never committed)
+  NO  → .claude/CLAUDE.md (project-level, committed)
+```
+
+**Size limits**: Global CLAUDE.md ≤ 150 lines. Project CLAUDE.md ≤ 200 lines. When over, split to rules/ files or extract to skills.
+
+---
+
 ## What Goes Where
 
 ### `docs/features/` — Work in progress and completed features
@@ -81,6 +108,22 @@ The most important file. Loaded into every Claude session. Keep it lean:
 - Key commands
 - Important file paths
 - Current Focus (what's in flight)
+
+### `.claude/rules/` — Path-scoped rules
+
+Rules files are loaded based on which files Claude is editing. A rule with `paths:` frontmatter only loads when working on matching files — everything else loads every session.
+
+```markdown
+---
+paths:
+  - "src/api/**"
+---
+# API Conventions
+- Return { data, error, meta } shape
+- Validate with Pydantic/Zod at boundary
+```
+
+Use rules/ to keep CLAUDE.md under 200 lines. Move directory-specific details here.
 
 ### `.claude/memory/` — Session state (gitignored)
 

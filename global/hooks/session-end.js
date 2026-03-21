@@ -43,15 +43,41 @@ async function main() {
     fs.mkdirSync(memoryDir, { recursive: true });
   }
 
+  // Check if /end-session already ran this session (wrote a real entry)
+  // by looking for a session entry with today's date that has actual content
+  // (not just the auto-captured stub). If found, skip the stub.
   const timestamp = new Date().toISOString().split("T")[0];
   const sessionId = hookData.session_id ? hookData.session_id.slice(0, 8) : "unknown";
+
+  if (fs.existsSync(logFile)) {
+    const existing = fs.readFileSync(logFile, "utf8");
+    // If there's already a real entry for today (has "### What was built"), skip stub
+    const todayPattern = new RegExp(`## Session ${timestamp}[\\s\\S]*?### What was built`);
+    if (todayPattern.test(existing)) {
+      console.log(JSON.stringify({ continue: true, suppressOutput: true }));
+      return;
+    }
+    // If there's already a stub for this exact session ID, skip duplicate
+    if (existing.includes(`(${sessionId})`)) {
+      console.log(JSON.stringify({ continue: true, suppressOutput: true }));
+      return;
+    }
+  }
+
+  // Only write a stub if dirty-files has content (something was actually changed)
+  const dirtyFile = path.join(memoryDir, "dirty-files");
+  const hasDirtyFiles = fs.existsSync(dirtyFile) && fs.readFileSync(dirtyFile, "utf8").trim().length > 0;
+
+  if (!hasDirtyFiles) {
+    // No files changed — skip stub entirely (read-only sessions don't need stubs)
+    console.log(JSON.stringify({ continue: true, suppressOutput: true }));
+    return;
+  }
 
   const entry = `
 ---
 ## Session ${timestamp} (${sessionId})
-> Auto-captured on Stop. Edit or delete stale entries freely.
-
-<!-- Claude: summarize what was built, decisions made, and anything to remember next session -->
+> Auto-captured on Stop. Run /sync-memory to backfill from git if /end-session was skipped.
 
 `;
 

@@ -143,6 +143,7 @@ Full walkthroughs with examples: `docs/workflows/feature-workflow.md` and `docs/
 | `/sync-memory` | Backfill session-log from git when /end-session was skipped |
 | `/catchup` | Resume context from last session |
 | `/end-session` | Log session, update Current Focus, clear dirty-files |
+| `/audit-config` | Health check — CLAUDE.md size, stale content, missing rules |
 | `/setup` | Interactive project setup for new devs |
 
 ## Skills
@@ -189,7 +190,7 @@ Claude has no memory between sessions by default. This setup adds it:
 ```
 ~/.claude/                      ← global, applies to every project
 ├── CLAUDE.md                   ← your identity, stack defaults, workflow rules
-├── settings.json               ← hooks config
+├── settings.json               ← hooks + permissions config
 ├── agents/                     ← shared agents (all projects)
 ├── skills/                     ← shared skills (all projects)
 ├── commands/                   ← slash commands
@@ -202,6 +203,7 @@ Claude has no memory between sessions by default. This setup adds it:
 │   ├── agents/                 ← project agents (override global by name)
 │   ├── skills/                 ← project skills
 │   ├── commands/               ← project commands
+│   ├── rules/                 ← path-scoped rules (load per file match)
 │   └── memory/
 │       ├── session-log.md      ← session history (gitignored)
 │       └── dirty-files         ← changed files buffer (gitignored)

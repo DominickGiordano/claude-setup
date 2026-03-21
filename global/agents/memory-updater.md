@@ -42,3 +42,17 @@ You're invoked at end-of-session. You will:
 - Keep total session-log.md under 200 lines — summarize or prune old entries if needed
 - After writing session log, clear `.claude/memory/dirty-files`
 - Always update `## Current Focus` in `.claude/CLAUDE.md` — this is what the next session starts from. Make it accurate. One paragraph max: what's in flight, what's next, any blockers.
+
+## Compound Check
+After writing the session summary, review the "Gotchas / watch out for" section you just wrote. If any gotcha:
+- Has appeared in a previous session (check earlier entries in session-log.md)
+- Is a pattern that would apply to other projects (not just this one)
+- Took significant debugging time to discover
+
+Then suggest compounding it:
+```
+Patterns worth capturing (run /compound to document):
+- [pattern]: [why it's reusable]
+```
+
+This is optional — only suggest if something genuinely stands out. Don't force it.

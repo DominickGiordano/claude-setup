@@ -182,7 +182,7 @@ fi
 
 # Create dirs
 if [[ "$DRY_RUN" == "false" ]]; then
-  mkdir -p "$PROJECT_DIR"/.claude/{agents,skills,commands,memory}
+  mkdir -p "$PROJECT_DIR"/.claude/{agents,skills,commands,rules,memory}
   mkdir -p "$PROJECT_DIR"/docs/{workflows,features,solutions,reference}
 fi
 
@@ -214,6 +214,9 @@ if [[ "$DRY_RUN" == "false" ]]; then
     fi
     if ! grep -q ".claude/.backups" "$GITIGNORE" 2>/dev/null; then
       ADDITIONS+="\n# Claude setup backups\n.claude/.backups/"
+    fi
+    if ! grep -q "CLAUDE.local.md" "$GITIGNORE" 2>/dev/null; then
+      ADDITIONS+="\n# Personal Claude overrides (not shared)\nCLAUDE.local.md\n.claude/settings.local.json"
     fi
     if [[ -n "$ADDITIONS" ]]; then
       echo -e "$ADDITIONS" >> "$GITIGNORE"

@@ -41,7 +41,11 @@
        - All DB queries go through src/lib/db.ts — never import prisma directly
        - Auth tokens come from Infisical, never hardcode
        - Don't touch migrations directly — use the CLI
-     Delete these comments and add your constraints. -->
+     Delete these comments and add your constraints.
+
+     TIP: If a rule only applies to certain directories, move it to
+     .claude/rules/[name].md with paths: frontmatter instead of putting it here.
+     See .claude/rules/EXAMPLE.md for the format. Keep this file under 200 lines. -->
 
 ## Lessons
 <!-- Add rules here when Claude makes a mistake worth preventing next time.
