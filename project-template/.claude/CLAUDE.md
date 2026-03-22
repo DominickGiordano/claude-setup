@@ -35,21 +35,39 @@
        docs/reference/   — system docs (commands, agents, workflows, file structure)
      Delete these comments and list your project-specific paths. -->
 
+## Project Config
+<!-- Integration config for global commands (/work-issue, /board, /backlog-notion, /update-notion-task).
+     Fill in the values relevant to your project. Delete unused sections.
+     Run /setup to fill this in interactively. -->
+```yaml
+pm_tool: none                            # notion | linear | github-projects | none
+base_branch: main                        # branch all work starts from
+test_commands:
+  - echo "no tests configured"
+# build_commands:
+#   - npm run build
+
+# Notion integration (only if pm_tool: notion)
+# notion_datasource: <data-source-id>
+# notion_project: https://www.notion.so/<project-page-id>
+# notion_goal: https://www.notion.so/<goal-page-id>
+# notion_pillar: https://www.notion.so/<pillar-page-id>
+# notion_assignee: user://<user-id>
+# notion_statuses: [Not started, In Progress, Done]
+# notion_kanban_view: view://<view-id>
+
+# GitHub issue types (optional — for GraphQL type assignment)
+# github_issue_types:
+#   bug: <type-id>
+#   feature: <type-id>
+#   task: <type-id>
+```
+
 ## Constraints
 <!-- Project-specific rules and gotchas. Things Claude would get wrong without being told.
-     Examples:
-       - All DB queries go through src/lib/db.ts — never import prisma directly
-       - Auth tokens come from Infisical, never hardcode
-       - Don't touch migrations directly — use the CLI
-     Delete these comments and add your constraints.
-
      TIP: If a rule only applies to certain directories, move it to
-     .claude/rules/[name].md with paths: frontmatter instead of putting it here.
-     See .claude/rules/EXAMPLE.md for the format. Keep this file under 200 lines. -->
+     .claude/rules/[name].md with paths: frontmatter. Keep this file under 200 lines. -->
 
 ## Lessons
 <!-- Add rules here when Claude makes a mistake worth preventing next time.
      Format: "Do NOT [wrong thing]. Instead, [correct thing]." -->
-
-## Current Focus
-<!-- What's actively being worked on? Update each session or via /end-session. -->

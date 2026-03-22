@@ -67,6 +67,19 @@ Rules:
 - Use the `#` shortcut to add quick memory items during sessions
 - Run `/end-session` before closing to summarize and commit learnings
 
+## Git Commit Rules
+- Do NOT add "Co-Authored-By" lines to commit messages — ever, in any project
+- Do NOT tag issue numbers (`#N`) in commits unless the commit is directly related to that issue
+- Branch naming convention: `<type>/<issue-number>-<short-desc>` (e.g. `feature/42-coverage-calc`)
+- Commit messages start with issue number: `#42 add coverage calculation`
+- PRs must use `Closes #N` in description — branch name alone does NOT auto-link
+
+## Notion Task Discipline
+- Always check off completed subtasks before marking a task Done
+- Note skipped subtasks with reason
+- Append a completion note with date and brief summary
+- Never flip Status → Done without updating content first
+
 ## Lessons
 - Do NOT put project-specific rules in `~/.claude/CLAUDE.md`. Move them to the project's `.claude/CLAUDE.md` or `.claude/rules/`.
 - Do NOT let project `CLAUDE.md` exceed 200 lines. Split path-specific content to `.claude/rules/` files with `paths:` frontmatter.
@@ -76,3 +89,5 @@ Rules:
 - Do NOT update `CLAUDE.md` without reading it first and checking the line count after.
 - Do NOT create speculative commands, skills, or agents. Build them when the need is confirmed.
 - Do NOT skip `/end-session`. Session memory is how you stay effective across sessions.
+- Do NOT put ephemeral state (current focus, branch lists, deploy checklists) in CLAUDE.md. Use memory files instead.
+- Do NOT duplicate CLAUDE.md content in MEMORY.md. Memory is for non-obvious context; CLAUDE.md is for rules.
