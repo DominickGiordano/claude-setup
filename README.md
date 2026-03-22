@@ -43,14 +43,27 @@ claude
 /setup                        # interactive project setup
 ```
 
-### Updating (after pulling new changes)
+### Two commands — know the difference
+
+| Command | What it does | Scope | Safe to re-run? |
+|---------|-------------|-------|-----------------|
+| `install-claude-setup` | Syncs global config (`~/.claude/`) — commands, agents, skills, CLAUDE.md | Your machine | Yes, `--force` backs up before overwriting |
+| `init-claude-setup` | Scaffolds `.claude/` + `docs/` in the **current project** | One repo | Yes, skips existing files. **Never overwrites CLAUDE.md** (even with `--force`) |
+
+**Updating global config** (after pulling new changes):
 ```bash
 cd /path/to/claude-setup
 git pull
-install-claude-setup --force  # overwrites with backups in ~/.claude/.backups/
+install-claude-setup --force  # updates ~/.claude/ with backups in ~/.claude/.backups/
 ```
 
-### Migrating existing projects (old docs/plans/ + docs/spikes/ structure)
+**Scaffolding a new project**:
+```bash
+cd /your/project
+init-claude-setup             # creates .claude/, docs/, etc.
+```
+
+**Migrating existing projects** (old docs/plans/ + docs/spikes/ structure):
 ```bash
 cd /your/project
 init-claude-setup             # auto-detects and migrates old structure
@@ -60,7 +73,43 @@ init-claude-setup --dry-run
 init-claude-setup --migrate-only
 ```
 
-Options: `--force` (overwrite with backups), `--dry-run` (preview changes), `--migrate-only` (just migrate old structure)
+Options: `--force` (overwrite with backups, except CLAUDE.md), `--dry-run` (preview changes), `--migrate-only` (just migrate old structure)
+
+---
+
+## Project Config
+
+Global commands (`/work-issue`, `/board`, `/backlog-notion`, `/update-notion-task`) adapt to each project by reading a `## Project Config` block in the project's `.claude/CLAUDE.md`:
+
+```yaml
+pm_tool: notion                          # notion | linear | github-projects | none
+base_branch: develop                     # branch all work starts from
+test_commands:
+  - python -m pytest tests/ -x -q
+
+# Notion integration (only if pm_tool: notion)
+notion_datasource: <data-source-id>
+notion_project: https://www.notion.so/<page-id>
+notion_goal: https://www.notion.so/<page-id>
+notion_pillar: https://www.notion.so/<page-id>
+notion_assignee: user://<user-id>
+notion_statuses: [Not started, In Progress, Done]
+notion_kanban_view: view://<view-id>
+```
+
+No config? Commands degrade gracefully — no Notion fields means PM steps are skipped, no test commands means Claude asks.
+
+---
+
+## CI Issue Triage
+
+Template GitHub Action in `project-template/.github/workflows/claude-issues.yml`. Triggers on new issues or `@claude` in comments. Claude triages, labels, creates a branch, and optionally creates a Notion task — all config-driven from Project Config.
+
+To add to a repo:
+1. Copy `project-template/.github/workflows/claude-issues.yml` to your repo
+2. Copy `project-template/.claude/prompts/ci-triage.md` to your repo
+3. Add `DEV_ANTHROPIC_API_KEY` to repo secrets (and `NOTION_TOKEN` if using Notion)
+4. Make sure your CLAUDE.md has a `## Project Config` block
 
 ---
 
@@ -143,6 +192,10 @@ Full walkthroughs with examples: `docs/workflows/feature-workflow.md` and `docs/
 | `/sync-memory` | Backfill session-log from git when /end-session was skipped |
 | `/catchup` | Resume context from last session |
 | `/end-session` | Log session, update Current Focus, clear dirty-files |
+| `/work-issue [#]` | Full dev cycle: load issue → checkout → analyze → code → test → commit → update PM |
+| `/board` | View PM kanban board (Notion or GitHub Issues fallback) |
+| `/backlog-notion [desc]` | Create Notion task + GitHub issue + branch |
+| `/update-notion-task [name]` | Update PM task: check subtasks, change status, add notes |
 | `/audit-config` | Health check — CLAUDE.md size, stale content, missing rules |
 | `/setup` | Interactive project setup for new devs |
 
