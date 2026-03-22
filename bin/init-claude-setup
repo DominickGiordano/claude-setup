@@ -187,7 +187,12 @@ if [[ "$DRY_RUN" == "false" ]]; then
 fi
 
 # Copy template files
-copy_if_missing "$TEMPLATE_DIR/.claude/CLAUDE.md"              "$PROJECT_DIR/.claude/CLAUDE.md"
+# CLAUDE.md is ALWAYS skip-if-exists — it's customized per project, --force should never overwrite it
+if [[ -f "$PROJECT_DIR/.claude/CLAUDE.md" ]]; then
+  log "SKIP (protected): .claude/CLAUDE.md — always project-customized, never overwritten"
+else
+  copy_if_missing "$TEMPLATE_DIR/.claude/CLAUDE.md"            "$PROJECT_DIR/.claude/CLAUDE.md"
+fi
 copy_if_missing "$TEMPLATE_DIR/.claude/settings.json"          "$PROJECT_DIR/.claude/settings.json"
 copy_if_missing "$TEMPLATE_DIR/.claude/memory/session-log.md"  "$PROJECT_DIR/.claude/memory/session-log.md"
 copy_if_missing "$TEMPLATE_DIR/docs/architecture.md"           "$PROJECT_DIR/docs/architecture.md"
