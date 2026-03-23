@@ -95,11 +95,12 @@ interactive_menu() {
 
   echo -e "${BOLD}What do you want to do?${RESET}"
   echo ""
-  echo -e "  ${GREEN}1${RESET}  Install/update global config  ${DIM}(skills, agents, commands → ~/.claude/)${RESET}"
-  echo -e "  ${GREEN}2${RESET}  Init current project           ${DIM}(scaffold .claude/ + docs/ here)${RESET}"
-  echo -e "  ${GREEN}3${RESET}  Set org for current project     ${DIM}(copy org rules: arete, xomware, custom)${RESET}"
-  echo -e "  ${GREEN}4${RESET}  Scan projects for promotions    ${DIM}(find unique project configs to promote)${RESET}"
-  echo -e "  ${GREEN}5${RESET}  Show slash command reference     ${DIM}(all commands available in Claude sessions)${RESET}"
+  echo -e "  ${GREEN}1${RESET}  Install global config            ${DIM}(skills, agents, commands → ~/.claude/)${RESET}"
+  echo -e "  ${GREEN}2${RESET}  Init new project                 ${DIM}(first-time scaffold .claude/ + docs/)${RESET}"
+  echo -e "  ${GREEN}3${RESET}  Update existing project          ${DIM}(pull latest templates, backs up first)${RESET}"
+  echo -e "  ${GREEN}4${RESET}  Set org for current project      ${DIM}(copy org rules: arete, xomware, custom)${RESET}"
+  echo -e "  ${GREEN}5${RESET}  Scan projects for promotions     ${DIM}(find unique project configs to promote)${RESET}"
+  echo -e "  ${GREEN}6${RESET}  Show slash command reference      ${DIM}(all commands available in Claude sessions)${RESET}"
   echo -e "  ${GREEN}q${RESET}  Quit"
   echo ""
   read -rp "  > " choice
@@ -116,9 +117,23 @@ interactive_menu() {
       ;;
     2)
       echo ""
-      exec "$REPO_DIR/bin/init-claude-setup"
+      if [[ -f ".claude/CLAUDE.md" ]]; then
+        echo -e "  ${YELLOW}Project already initialized.${RESET} Use option 3 to update."
+      else
+        exec "$REPO_DIR/bin/init-claude-setup"
+      fi
       ;;
     3)
+      echo ""
+      if [[ ! -f ".claude/CLAUDE.md" ]]; then
+        echo -e "  ${YELLOW}Project not initialized yet.${RESET} Use option 2 first."
+      else
+        echo -e "  Updating project templates (backs up existing, never touches CLAUDE.md)..."
+        echo ""
+        exec "$REPO_DIR/bin/init-claude-setup" --force
+      fi
+      ;;
+    4)
       echo ""
       echo -e "  ${BOLD}Available org configs:${RESET}"
       echo ""
@@ -169,11 +184,11 @@ interactive_menu() {
         exit 1
       fi
       ;;
-    4)
+    5)
       echo ""
       exec "$REPO_DIR/bin/update-claude-setup" --report
       ;;
-    5)
+    6)
       show_reference
       ;;
     q|Q|"")
@@ -196,7 +211,11 @@ case "${1:-}" in
     shift
     exec "$REPO_DIR/bin/init-claude-setup" "$@"
     ;;
-  update)
+  update-project)
+    shift
+    exec "$REPO_DIR/bin/init-claude-setup" --force "$@"
+    ;;
+  scan)
     shift
     exec "$REPO_DIR/bin/update-claude-setup" "$@"
     ;;
