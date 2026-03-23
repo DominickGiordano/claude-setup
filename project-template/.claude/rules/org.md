@@ -11,6 +11,9 @@
 
 # Org Conventions
 
+## GitHub
+<!-- Org and username for PRs, issues, branch naming -->
+
 ## Secrets
 <!-- Which secrets manager? Infisical, AWS Secrets Manager, Doppler, .env only for local? -->
 

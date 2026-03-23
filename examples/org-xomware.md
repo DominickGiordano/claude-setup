@@ -8,8 +8,11 @@
 ## Auth
 <!-- Fill in your preferred auth: Clerk, Supabase Auth, Firebase Auth, NextAuth, etc. -->
 
+## GitHub
+- **Org:** `Xomware`
+- **User:** `domgiordano`
+
 ## Cloud / Infra
-- **GitHub org:** `Xomware`
 - **Hosting:** project-dependent (Vercel, Railway, Fly.io, AWS, etc.)
 - **IaC:** Terraform with remote state where applicable
 - Keep infra simple -- managed services over self-hosted where possible

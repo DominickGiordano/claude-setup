@@ -11,8 +11,11 @@
 - **Entra ID (Azure AD)** via MSAL for all auth flows
 - When touching auth: confirm which Entra app registration this belongs to
 
+## GitHub
+- **Org:** `aretecp`
+- **User:** `DominickGiordano`
+
 ## Cloud / Infra
-- **GitHub org:** `aretecp`
 - **AWS compute:** ECS Fargate (services), Lambda (event-driven/scheduled)
 - **Networking:** Tailscale sidecar for ECS -> self-hosted VPS (Postgres/Redis)
 - **IaC:** Terraform via Terraform Cloud, org `arete-intelligence`
