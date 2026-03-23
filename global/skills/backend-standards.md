@@ -2,39 +2,26 @@
 name: backend-standards
 description: >
   Use when doing any backend work -- APIs, services, databases, auth,
-  background jobs, CLI tools. Covers Arete backend conventions for Python,
+  background jobs, CLI tools. Covers backend conventions for Python,
   TypeScript, and Elixir. Load alongside language-specific skills (python,
   elixir, phoenix) for implementation patterns.
 ---
 
-# Backend Standards -- Arete
-
-## Stack
-
-| Layer | Tech |
-|---|---|
-| Languages | Python, TypeScript/Node.js, Elixir/Phoenix |
-| Compute | AWS ECS Fargate (primary), Lambda (event-driven/scheduled) |
-| Databases | Postgres (self-hosted VPS), Redis (self-hosted VPS) |
-| Secrets | Infisical Cloud -- single source of truth |
-| Auth | Entra ID (Azure AD) via MSAL |
-| Networking | Tailscale sidecar for ECS -> VPS connectivity |
-| CI/CD | GitHub Actions + OIDC to AWS |
-| GitHub org | `aretecp` |
+# Backend Standards
 
 ## Before Writing Code
 
 1. Map blast radius -- what else does this touch?
 2. Does an existing pattern or module already handle this?
-3. Confirm secrets strategy -- all secrets via Infisical, never hardcoded
-4. If touching auth: which Entra app registration does this belong to?
+3. Confirm secrets strategy -- check project CLAUDE.md or org rules for secrets approach
+4. Read project CLAUDE.md for stack, auth provider, and org-specific conventions
 
 ## Secrets -- Non-Negotiable
 
-- All secrets via Infisical. No exceptions. No `.env` in prod.
+- All secrets via a secrets manager (check org rules for which one). Never hardcoded.
 - Never log secrets. Never pass as plaintext env vars.
-- Local dev: `infisical run -- <command>`
-- New services: provision Infisical path before wiring the app.
+- No `.env` files in production -- secrets injected at runtime.
+- New services: provision secrets path before wiring the app.
 
 ## API Design
 
@@ -81,7 +68,7 @@ description: >
 ## Self-Review
 
 Before marking backend work done:
-- [ ] Secrets: nothing hardcoded, all through Infisical
+- [ ] Secrets: nothing hardcoded, managed via secrets manager
 - [ ] Types: full coverage -- no `any` in TS, type hints in Python
 - [ ] Error handling: all failure paths handled and logged
 - [ ] Tests: happy path + at least one failure case
@@ -90,11 +77,10 @@ Before marking backend work done:
 - [ ] API shape: consistent `{ data, error, meta }`
 - [ ] Migrations: reversible if applicable
 
-## Common Arete Mistakes
+## Common Mistakes
 
-- SSM Parameter Store instead of Infisical
-- Hardcoding AWS region (always use variable)
+- Hardcoding secrets or AWS region (always use variable/config)
 - Using `.env` in production containers
 - Writing Elixir like OOP -- embrace processes and pattern matching
-- Forgetting Tailscale sidecar when ECS needs to reach the VPS
 - Silent error swallowing in catch blocks
+- Missing pagination on list endpoints

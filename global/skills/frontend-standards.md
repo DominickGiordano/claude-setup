@@ -2,17 +2,17 @@
 name: frontend-standards
 description: >
   Use when doing any frontend work -- React, Next.js, Tailwind, shadcn/ui,
-  UI components, design systems, accessibility, performance. Covers Arete
-  frontend conventions and quality standards. Load this alongside ts-component
-  for implementation patterns.
+  UI components, design systems, accessibility, performance. Covers frontend
+  conventions and quality standards. Load alongside ts-component for
+  implementation patterns.
 ---
 
-# Frontend Standards -- Arete
+# Frontend Standards
 
 ## Design System Persistence
 
 Before writing any frontend code on an existing project:
-1. Check for `.interface-design/system.md` -- if found, read it and state what you see
+1. Check for `.interface-design/system.md` or design tokens file -- if found, read it and state what you see
 2. If missing, scan 2-3 existing components to extract actual patterns in use
 3. Read `## Frontend Standards` or `## Stack` in project CLAUDE.md
 4. State before proceeding: "Found system.md -- [grid, colors, borders]. I'll match that."

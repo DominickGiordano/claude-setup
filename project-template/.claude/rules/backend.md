@@ -8,8 +8,8 @@ paths:
 ---
 # Backend Rules
 
-- Check `backend-standards` skill for full Arete backend conventions
-- All secrets via Infisical -- never hardcoded, never `.env` in prod
+- Check `backend-standards` skill for full backend conventions
+- All secrets via secrets manager (see org.md) -- never hardcoded, never `.env` in prod
 - API responses: `{ data, error, meta }` shape -- consistent everywhere
 - Validate at the boundary: Pydantic (Python), Zod (TypeScript), Ecto changesets (Elixir)
 - Explicit error handling -- no silent catches, structured error responses
