@@ -209,6 +209,12 @@ for f in "$TEMPLATE_DIR"/docs/reference/*.md; do
   copy_if_missing "$f" "$PROJECT_DIR/docs/reference/$(basename "$f")"
 done
 
+# Copy path-scoped rules (domain rules: frontend, backend, infra, ios)
+for f in "$TEMPLATE_DIR"/.claude/rules/*.md; do
+  [[ -f "$f" ]] || continue
+  copy_if_missing "$f" "$PROJECT_DIR/.claude/rules/$(basename "$f")"
+done
+
 # Add .claude/memory and .claude/.backups to .gitignore
 GITIGNORE="$PROJECT_DIR/.gitignore"
 if [[ "$DRY_RUN" == "false" ]]; then
