@@ -47,11 +47,36 @@ Present findings:
 **Scope:** small / medium / large
 ```
 
-### 5. Update PM with Plan
+### 5. Domain Classification
+
+Classify the domain based on affected files from step 4 and issue labels:
+
+**Frontend signals:** `.tsx`, `.jsx`, `.css`, `components/`, `pages/`, `app/`, UI/design/layout keywords
+**Backend signals:** `.py`, `.ex`, `.ts` (non-component), `api/`, `services/`, `lib/`, API/database/auth keywords
+**Infra signals:** `.tf`, `.hcl`, `infra/`, `terraform/`, `.github/workflows/`, Dockerfile, IaC/deploy/CI keywords
+**iOS signals:** `.swift`, `Sources/`, `.xcodeproj`, `.xcworkspace`, SwiftUI/UIKit/Xcode keywords
+
+**Classification rules:**
+- If `dev_domain` exists in Project Config, use as default
+- If files clearly map to one domain, classify automatically
+- If multiple domains detected, ask: "Is this primarily frontend, backend, infra, or iOS? I'll load the right specialist."
+- If unclear, ask before proceeding
+
+**Present the classification:**
+```
+Domain:      [Frontend | Backend | Infra | iOS | Multi: X + Y]
+Specialist:  [frontend-specialist | backend-specialist | infra-specialist | ios-specialist]
+Standards:   [2-4 most relevant skills for this task]
+Context:     [file summary — e.g. "3 files in src/api/, 1 migration"]
+```
+
+Ask the user to confirm the domain classification before proceeding.
+
+### 6. Update PM with Plan
 - If `pm_tool: notion`: replace generic subtasks with specific implementation steps, add risks as notes
 - If no PM: skip
 
-### 6. Determine Approach — ASK the user
+### 7. Determine Approach — ASK the user
 Based on the analysis, recommend one of:
 - **`/fix`** — small scope, clear path, 1-2 files
 - **`/plan`** — medium scope, needs a written plan before coding
@@ -61,22 +86,33 @@ Present the recommendation and **ask the user to confirm**. Ask any clarifying q
 
 **For `/plan` or `/brainstorm`:** After the brainstorm/plan is written and approved, update PM with DETAILED subtasks BEFORE starting implementation.
 
-### 7. Do the Work
-Execute the chosen approach:
-- `/fix`: implement, test
-- `/plan` → `/execute`: write plan, get approval, implement
-- `/brainstorm` → `/plan` → `/execute`: explore options, pick one, plan, implement
+### 8. Do the Work
+Execute the chosen approach using the classified domain specialist:
+
+**Small scope (`/fix`):** Load the domain standards skill inline and implement in the main session.
+- Frontend → load `frontend-standards` skill
+- Backend → load `backend-standards` skill
+- Infra → load `infra-standards` skill
+- iOS → load `ios-standards` skill
+
+**Medium/Large scope (`/plan` or `/brainstorm`):** After plan is written and approved, delegate implementation to the domain specialist agent:
+- Frontend → `frontend-specialist` agent (preloads: frontend-standards, ts-component, api-route, nodejs)
+- Backend → `backend-specialist` agent (preloads: backend-standards, python, elixir, phoenix, database, error-handling)
+- Infra → `infra-specialist` agent (preloads: infra-standards, terraform, docker-deploy, infisical, env-config)
+- iOS → `ios-specialist` agent (preloads: ios-standards)
+
+**Multi-domain:** Ask user which domain is primary, delegate to that specialist first, then handle secondary domain after.
 
 Always:
 - Run each command in `test_commands` from Project Config after changes
 - Run each command in `build_commands` from Project Config if relevant files changed
 
-### 8. Review
+### 9. Review
 - Show a summary of all files changed and why
 - Run tests/linting one final time
 - Ask the user if they want to review before committing
 
-### 9. Commit & Push
+### 10. Commit & Push
 - Stage the relevant files (not `.env`, credentials, etc.)
 - Commit with clear message — only tag issue number if directly related
 - **Do NOT push** — show the user the commit and let them push:
@@ -85,7 +121,7 @@ Always:
   git push origin {branch-name}
   ```
 
-### 10. Update PM Task
+### 11. Update PM Task
 - If `pm_tool: notion`:
   - **Update content BEFORE status** — never just flip to Done
   - Check off completed subtasks (`- [ ]` → `- [x]`); note skipped with reason
@@ -95,7 +131,7 @@ Always:
   - If some remain: keep "In Progress", note what's left
 - If no PM: skip
 
-### 11. Wrap Up
+### 12. Wrap Up
 Ask the user:
 - **Continue?** Pick up another issue (`/work-issue {next}`)
 - **End session?** Run `/end-session` to save learnings

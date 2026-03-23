@@ -42,6 +42,7 @@
 ```yaml
 pm_tool: none                            # notion | linear | github-projects | none
 base_branch: main                        # branch all work starts from
+# dev_domain: backend                    # frontend | backend | infra | ios | fullstack (auto-detected if missing)
 test_commands:
   - echo "no tests configured"
 # build_commands:
