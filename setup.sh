@@ -13,7 +13,7 @@ echo ""
 
 mkdir -p "$BIN_DIR"
 
-for cmd in install-claude-setup init-claude-setup update-claude-setup; do
+for cmd in claude-setup install-claude-setup init-claude-setup update-claude-setup; do
   src="$SCRIPT_DIR/$cmd"
   dst="$BIN_DIR/$cmd"
 
@@ -39,7 +39,8 @@ if ! echo "$PATH" | tr ':' '\n' | grep -q "$HOME/.local/bin"; then
 else
   echo ""
   echo "All commands are ready to use:"
-  echo "  install-claude-setup    Install global config to ~/.claude/"
-  echo "  init-claude-setup       Scaffold .claude/ in current project"
-  echo "  update-claude-setup     Scan projects and surface improvements"
+  echo "  claude-setup              Dashboard + interactive manager"
+  echo "  install-claude-setup      Install global config to ~/.claude/"
+  echo "  init-claude-setup         Scaffold .claude/ in current project"
+  echo "  update-claude-setup       Scan projects and surface improvements"
 fi
