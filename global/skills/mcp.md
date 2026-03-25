@@ -1,6 +1,12 @@
 ---
 name: mcp
-description: Use when building or integrating MCP (Model Context Protocol) servers or clients — defining tools, resources, prompts, or connecting to existing MCP servers via Claude Code or the Anthropic API.
+description: >
+  ALWAYS use when building or integrating MCP (Model Context Protocol) servers or
+  clients. Also triggers for: defining tools, resources, prompts, transport layers,
+  connecting MCP servers to Claude Code, or wiring MCP into the Anthropic API.
+  Never build an MCP server without this skill.
+  Trigger phrases: "mcp", "model context protocol", "mcp server", "mcp client",
+  "tool definition", "mcp resource", "mcp transport", ".mcp.json".
 ---
 
 # MCP Patterns — Areté

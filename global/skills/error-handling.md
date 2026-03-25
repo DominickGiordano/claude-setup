@@ -1,6 +1,12 @@
 ---
 name: error-handling
-description: Use when designing error handling for any service, API, or module. Covers typed errors, result patterns, and error propagation across TypeScript, Python, and Elixir.
+description: >
+  ALWAYS use when designing error handling, result types, or error propagation. Covers
+  typed errors, Result patterns, and error boundaries across TypeScript, Python, and
+  Elixir. Also triggers for: custom error classes, error codes, HTTP error responses,
+  or `with` chain error handling.
+  Trigger phrases: "error handling", "result type", "AppError", "try/catch",
+  "with chain", "error propagation", "typed errors", "error boundary".
 ---
 
 # Error Handling Patterns — Areté

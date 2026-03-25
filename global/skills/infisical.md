@@ -1,6 +1,12 @@
 ---
 name: infisical
-description: Use when integrating Infisical for secrets management — CLI usage, SDK integration, injecting secrets into services, or setting up new project secret environments.
+description: >
+  ALWAYS use when working with Infisical or secrets management — CLI usage, SDK
+  integration, injecting secrets into services, post-Terraform-apply secret push,
+  or setting up new project secret environments. Also triggers for: secret rotation,
+  secret paths, or any mention of Infisical in infrastructure work.
+  Trigger phrases: "infisical", "secrets", "secret management", "secret push",
+  "secret rotation", "vault", "credentials management".
 ---
 
 # Infisical Patterns — Areté

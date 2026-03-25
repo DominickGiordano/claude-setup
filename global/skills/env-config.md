@@ -1,6 +1,11 @@
 ---
 name: env-config
-description: Use when setting up environment variable management, config loading, or multi-environment configuration for any Areté service.
+description: >
+  ALWAYS use when setting up environment variables, config loading, secrets injection,
+  or multi-environment configuration. Also triggers for: .env files, config validation,
+  runtime config, config schemas, or environment-specific behavior.
+  Trigger phrases: "env", "environment variable", "config", ".env", "dotenv",
+  "runtime config", "config.exs", "settings", "secrets".
 ---
 
 # Environment & Config Patterns — Areté

@@ -1,6 +1,11 @@
 ---
 name: testing
-description: Use when writing tests across any Areté language. Covers patterns for TypeScript/Jest, Python/pytest, and Elixir/ExUnit.
+description: >
+  ALWAYS use when writing or modifying tests in any Areté project. Covers patterns for
+  TypeScript/Jest/Vitest, Python/pytest, and Elixir/ExUnit. Also triggers for: test
+  fixtures, mocking, assertions, test structure, or CI test configuration.
+  Trigger phrases: "test", "jest", "vitest", "pytest", "exunit", "mock",
+  "fixture", "assert", "describe", "it(", "test(".
 ---
 
 # Testing Patterns — Areté

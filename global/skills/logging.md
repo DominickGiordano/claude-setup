@@ -1,6 +1,11 @@
 ---
 name: logging
-description: Use when adding logging, structured logs, or observability to any Areté service. Covers structured logging patterns for TypeScript, Python, and Elixir.
+description: >
+  ALWAYS use when adding logging, structured logs, or observability to any service.
+  Covers structured logging patterns for TypeScript (pino), Python, and Elixir. Also
+  triggers for: log levels, request tracing, telemetry, or debugging output formatting.
+  Trigger phrases: "logging", "logger", "pino", "log level", "structured log",
+  "observability", "telemetry", "tracing", "debug log".
 ---
 
 # Logging & Observability — Areté

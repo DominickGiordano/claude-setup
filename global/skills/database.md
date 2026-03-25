@@ -1,6 +1,12 @@
 ---
 name: database
-description: Use when writing database queries, migrations, or data access patterns. Covers Postgres via Ecto (Elixir), Prisma (TypeScript), and raw SQL patterns.
+description: >
+  ALWAYS use when writing database queries, migrations, schemas, or data access
+  patterns. Covers Postgres via Ecto, Prisma, and raw SQL. Also triggers for: indexes,
+  foreign keys, joins, N+1 queries, rollbacks, seed data, or any data modeling work.
+  Never write a migration without this skill.
+  Trigger phrases: "migration", "schema", "query", "ecto", "prisma", "SQL",
+  "index", "foreign key", "repo", "changeset", "database".
 ---
 
 # Database Patterns — Areté

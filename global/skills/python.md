@@ -1,6 +1,11 @@
 ---
 name: python
-description: Use when writing Python scripts, services, data processing, or AI tooling. Covers Areté conventions for Python 3.11+.
+description: >
+  ALWAYS use when writing Python code — scripts, services, data processing, Lambda
+  functions, or AI tooling. Covers Areté conventions for Python 3.11+. Also triggers
+  for: FastAPI, pydantic, httpx, pyenv, type hints, or async Python patterns.
+  Trigger phrases: "python", "fastapi", "pydantic", "lambda function", "httpx",
+  "pyenv", "pip", "poetry", "pytest", "async def".
 ---
 
 # Python Patterns — Areté

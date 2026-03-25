@@ -1,6 +1,11 @@
 ---
 name: terraform
-description: Use when writing Terraform modules, resources, variables, or state config. Covers Areté IaC conventions and safe patterns.
+description: >
+  ALWAYS use when writing, reviewing, or debugging Terraform or Terragrunt. Also
+  triggers for: AWS resources, IAM roles, OIDC setup, Terraform Cloud workspaces,
+  module design, state management, provider config. Never write IaC without this skill.
+  Trigger phrases: "terraform", "terragrunt", "tf", "hcl", "workspace",
+  "state file", "provider", "module", "apply", "plan", "destroy", "tfvars".
 ---
 
 # Terraform Patterns — Areté

@@ -1,6 +1,11 @@
 ---
 name: elixir
-description: Use when writing Elixir modules, GenServers, supervisors, pipelines, or OTP applications. Core language patterns — see phoenix skill for web layer specifics.
+description: >
+  ALWAYS use when writing Elixir code — modules, GenServers, supervisors, pipelines,
+  or OTP applications. Core language patterns for Areté Elixir projects. See phoenix
+  skill for web layer specifics. Never write Elixir without this skill.
+  Trigger phrases: "elixir", "genserver", "supervisor", "otp", "mix", "defmodule",
+  "pattern match", "pipe operator", "with chain", "ash".
 ---
 
 # Elixir Patterns — Areté

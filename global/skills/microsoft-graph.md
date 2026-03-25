@@ -1,6 +1,12 @@
 ---
 name: microsoft-graph
-description: Use when integrating with Microsoft Graph API — mail, calendar, webhooks, users, or any Microsoft 365 service. Covers auth (MSAL), common endpoints, and async patterns.
+description: >
+  ALWAYS use when integrating with Microsoft Graph API or any Microsoft 365 service.
+  Covers MSAL auth, common endpoints, and async patterns. Also triggers for: Outlook
+  mail, calendar, webhooks, Entra ID, Azure AD, Teams, SharePoint, or OneDrive API
+  work. Never call Graph API without this skill.
+  Trigger phrases: "graph api", "microsoft graph", "msal", "outlook", "365",
+  "entra", "azure ad", "teams api", "sharepoint", "calendar api", "mail api".
 ---
 
 # Microsoft Graph API — Areté Patterns

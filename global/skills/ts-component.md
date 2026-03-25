@@ -1,6 +1,11 @@
 ---
 name: ts-component
-description: Use when creating a new React/TypeScript component. Produces a properly typed, structured component following Areté's code standards.
+description: >
+  ALWAYS use when creating or refactoring a React/TypeScript component. Produces
+  properly typed, structured components following Areté code standards. Also triggers
+  for: component props, hooks, state management, or component composition patterns.
+  Trigger phrases: "component", "tsx", "react component", "props", "hooks",
+  "useState", "useEffect", "functional component".
 ---
 
 # TypeScript React Component

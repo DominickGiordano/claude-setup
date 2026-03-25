@@ -1,6 +1,12 @@
 ---
 name: docker-deploy
-description: Use when deploying applications with Docker Compose and Traefik. Covers container setup, reverse proxy, SSL, health checks, and deployment patterns for Python, Elixir, and Node.js apps.
+description: >
+  ALWAYS use when working with Docker Compose, Traefik, or container deployments.
+  Also triggers for: Dockerfiles, multi-stage builds, reverse proxy config, SSL
+  certificates, health checks, container networking, or deploying any Areté service.
+  Never write Docker or deployment config without this skill.
+  Trigger phrases: "docker", "compose", "traefik", "container", "dockerfile",
+  "deploy", "reverse proxy", "SSL", "health check", "docker-compose.yml".
 ---
 
 # Docker Compose + Traefik Deployment — Areté Patterns

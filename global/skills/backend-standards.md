@@ -1,10 +1,11 @@
 ---
 name: backend-standards
 description: >
-  Use when doing any backend work -- APIs, services, databases, auth,
-  background jobs, CLI tools. Covers backend conventions for Python,
-  TypeScript, and Elixir. Load alongside language-specific skills (python,
-  elixir, phoenix) for implementation patterns.
+  ALWAYS use when doing any backend work — APIs, services, databases, auth,
+  background jobs, CLI tools, or server-side logic. Covers backend conventions
+  for Python, TypeScript, and Elixir. Load alongside language-specific skills.
+  Trigger phrases: "api", "endpoint", "service", "backend", "auth", "middleware",
+  "background job", "queue", "CLI tool", "server".
 ---
 
 # Backend Standards

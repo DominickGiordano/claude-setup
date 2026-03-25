@@ -1,6 +1,11 @@
 ---
 name: nodejs
-description: Use when writing Node.js scripts, servers, CLI tools, or utilities. Covers module patterns, async, error handling, and Areté-specific conventions.
+description: >
+  ALWAYS use when writing Node.js scripts, servers, CLI tools, or utilities. Covers
+  module patterns, async, error handling, and Areté conventions. Also triggers for:
+  package.json config, npm scripts, ESM/CJS patterns, or Node-specific APIs.
+  Trigger phrases: "node", "nodejs", "npm", "package.json", "esm", "cjs",
+  "node script", "node server", "node cli".
 ---
 
 # Node.js Patterns — Areté

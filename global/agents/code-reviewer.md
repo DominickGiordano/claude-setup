@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Reviews code changes for quality, security, and correctness. Use after implementing a feature, before committing, or when asked to review a file or diff.
-tools: Read, Glob, Grep, Bash
+tools: Read, Glob, Grep
 model: sonnet
 memory: user
 ---

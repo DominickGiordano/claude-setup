@@ -1,6 +1,11 @@
 ---
 name: phoenix
-description: Use when building Phoenix controllers, LiveView, channels, plugs, or router config. Web layer specifics — see elixir skill for core OTP/module patterns.
+description: >
+  ALWAYS use when building Phoenix controllers, LiveView, channels, plugs, or router
+  config. Web layer specifics for Areté Phoenix apps — see elixir skill for core
+  OTP/module patterns. Never write Phoenix web code without this skill.
+  Trigger phrases: "phoenix", "liveview", "live view", "plug", "router",
+  "controller", "channel", "endpoint", "heex", "assigns", "socket".
 ---
 
 # Phoenix Patterns — Areté
