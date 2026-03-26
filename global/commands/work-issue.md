@@ -78,10 +78,12 @@ Set status to `In Progress` and write the following content structure:
 ```
 
 **Formatting rules for Notion content:**
+- **CRITICAL**: The `new_str` / content field must contain **actual newlines**, not escaped `\n` literals. Escaped `\n` renders as one giant blob in Notion. Use real multi-line strings.
 - Use headers (`##`, `###`) to separate sections — never a wall of text
 - Subtasks as `- [ ]` checkboxes — every task needs at least 3
 - Bold key terms and file paths
 - Keep each bullet under 2 lines
+- Always `notion-fetch` after updating to verify the content rendered correctly
 - If `pm_tool: none` or not set: skip this step
 
 ### 4. Deep Analysis
@@ -219,10 +221,12 @@ If `pm_tool: notion`:
    - Some remain → keep `In Progress`, note what's left in the completion section
 
 **Formatting rules:**
+- **CRITICAL**: Content must use **actual newlines**, not escaped `\n` — escaped newlines render as one blob in Notion
 - Use `##` and `###` headers — never dump a paragraph
 - Bold file paths and key terms
 - Each bullet is one concrete fact, not a vague summary
 - Include enough detail that someone reading the task 2 weeks later understands what happened
+- Always `notion-fetch` after updating to verify it rendered correctly
 
 If no PM: skip
 
