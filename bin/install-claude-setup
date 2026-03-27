@@ -38,9 +38,11 @@ log() { echo "  $1"; }
 
 backup_file() {
   local file="$1"
+  local base_dir="${2:-$CLAUDE_DIR}"
+  local bak_dir="${3:-$BACKUP_DIR}"
   if [[ -f "$file" ]]; then
-    local rel="${file#$CLAUDE_DIR/}"
-    local backup_path="$BACKUP_DIR/$rel"
+    local rel="${file#$base_dir/}"
+    local backup_path="$bak_dir/$rel"
     mkdir -p "$(dirname "$backup_path")"
     cp "$file" "$backup_path"
   fi
@@ -49,6 +51,8 @@ backup_file() {
 copy_file() {
   local src="$1"
   local dst="$2"
+  local base_dir="${3:-$CLAUDE_DIR}"
+  local bak_dir="${4:-$BACKUP_DIR}"
 
   if [[ "$DRY_RUN" == "true" ]]; then
     if [[ -f "$dst" ]] && [[ "$FORCE" == "false" ]]; then
@@ -64,7 +68,7 @@ copy_file() {
   if [[ -f "$dst" ]] && [[ "$FORCE" == "false" ]]; then
     log "SKIP (exists): $dst"
   elif [[ -f "$dst" ]]; then
-    backup_file "$dst"
+    backup_file "$dst" "$base_dir" "$bak_dir"
     cp "$src" "$dst"
     log "UPDATED (backed up): $dst"
   else
@@ -125,6 +129,71 @@ for f in "$SOURCE_DIR"/hooks/*.js; do
   copy_file "$f" "$CLAUDE_DIR/hooks/$(basename "$f")"
   [[ "$DRY_RUN" == "false" ]] && chmod +x "$CLAUDE_DIR/hooks/$(basename "$f")"
 done
+
+# --- Sync template files to registered projects ---
+PROJECTS_FILE="$CLAUDE_DIR/.projects"
+TEMPLATE_DIR="$REPO_DIR/project-template"
+
+if [[ -f "$PROJECTS_FILE" ]] && [[ "$FORCE" == "true" ]]; then
+  echo ""
+  echo "Syncing project template files to registered projects..."
+  echo ""
+
+  while IFS= read -r project_dir || [[ -n "$project_dir" ]]; do
+    [[ -z "$project_dir" ]] && continue
+    [[ "$project_dir" == \#* ]] && continue
+
+    if [[ ! -d "$project_dir/.claude" ]]; then
+      log "SKIP (not found): $project_dir"
+      continue
+    fi
+
+    proj_backup="$project_dir/.claude/.backups/$(date +%Y%m%d-%H%M%S)"
+    echo "  Project: $(basename "$project_dir") ($project_dir)"
+
+    # Ensure directories exist
+    mkdir -p "$project_dir"/.claude/prompts
+    mkdir -p "$project_dir"/.github/workflows
+    mkdir -p "$project_dir"/docs/{reference,workflows}
+    mkdir -p "$project_dir"/.claude/rules
+
+    # CI workflow + triage prompt — always sync
+    for f in "$TEMPLATE_DIR"/.github/workflows/*.yml; do
+      [[ -f "$f" ]] || continue
+      copy_file "$f" "$project_dir/.github/workflows/$(basename "$f")" "$project_dir" "$proj_backup"
+    done
+    for f in "$TEMPLATE_DIR"/.claude/prompts/*.md; do
+      [[ -f "$f" ]] || continue
+      copy_file "$f" "$project_dir/.claude/prompts/$(basename "$f")" "$project_dir" "$proj_backup"
+    done
+
+    # Reference docs — always sync (these are system docs, not project-specific)
+    for f in "$TEMPLATE_DIR"/docs/reference/*.md; do
+      [[ -f "$f" ]] || continue
+      copy_file "$f" "$project_dir/docs/reference/$(basename "$f")" "$project_dir" "$proj_backup"
+    done
+
+    # Workflow docs — always sync
+    for f in "$TEMPLATE_DIR"/docs/workflows/*.md; do
+      [[ -f "$f" ]] || continue
+      copy_file "$f" "$project_dir/docs/workflows/$(basename "$f")" "$project_dir" "$proj_backup"
+    done
+
+    # Domain rules (backend, frontend, infra, ios) — always sync
+    # SKIP org.md — that's project/org-specific
+    for f in "$TEMPLATE_DIR"/.claude/rules/*.md; do
+      [[ -f "$f" ]] || continue
+      [[ "$(basename "$f")" == "org.md" ]] && continue
+      copy_file "$f" "$project_dir/.claude/rules/$(basename "$f")" "$project_dir" "$proj_backup"
+    done
+
+    echo ""
+  done < "$PROJECTS_FILE"
+elif [[ -f "$PROJECTS_FILE" ]] && [[ "$FORCE" == "false" ]]; then
+  echo ""
+  echo "Registered projects found in ~/.claude/.projects"
+  echo "Run with --force to sync template files to all projects."
+fi
 
 echo ""
 if [[ "$DRY_RUN" == "true" ]]; then

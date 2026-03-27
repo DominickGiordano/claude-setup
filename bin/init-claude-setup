@@ -247,6 +247,16 @@ if [[ "$DRY_RUN" == "false" ]]; then
   fi
 fi
 
+# Register this project for global sync
+PROJECTS_FILE="$HOME/.claude/.projects"
+if [[ "$DRY_RUN" == "false" ]] && [[ "$MIGRATE_ONLY" == "false" ]]; then
+  touch "$PROJECTS_FILE"
+  if ! grep -qxF "$PROJECT_DIR" "$PROJECTS_FILE" 2>/dev/null; then
+    echo "$PROJECT_DIR" >> "$PROJECTS_FILE"
+    log "Registered project in ~/.claude/.projects"
+  fi
+fi
+
 echo ""
 if [[ "$DRY_RUN" == "true" ]]; then
   echo "Dry run complete. No files were changed."
