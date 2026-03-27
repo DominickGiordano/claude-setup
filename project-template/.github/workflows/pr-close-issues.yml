@@ -1,0 +1,145 @@
+name: Auto-link Issues on PR
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  link-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code@latest
+
+      - name: Gather PR context
+        id: context
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO=${{ github.repository }}
+          BASE=${{ github.event.pull_request.base.sha }}
+          HEAD=${{ github.event.pull_request.head.sha }}
+
+          # Get all commit messages in this PR
+          COMMITS=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/commits" --paginate -q '.[].commit.message')
+          echo "$COMMITS" > /tmp/commits.txt
+
+          # Extract unique issue numbers from commit messages
+          # Matches: #42, feat: #42, fix: #42, Closes #42, etc.
+          ISSUES=$(echo "$COMMITS" | grep -oE '#[0-9]+' | sort -t'#' -k2 -n -u | tr -d '#' || true)
+          echo "$ISSUES" > /tmp/issues.txt
+
+          # Generate the diff stat for the summary
+          git diff --stat "${BASE}..${HEAD}" > /tmp/diffstat.txt
+
+          # Generate the full diff for Claude to summarize
+          git diff "${BASE}..${HEAD}" > /tmp/full-diff.txt
+
+          # Fetch issue titles for context
+          : > /tmp/issue-context.txt
+          for ISSUE in $ISSUES; do
+            TITLE=$(gh issue view "$ISSUE" --repo "$REPO" --json title -q '.title' 2>/dev/null || echo "(could not fetch)")
+            echo "#${ISSUE}: ${TITLE}" >> /tmp/issue-context.txt
+          done
+
+      - name: Generate PR summary with Claude
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.DEV_ANTHROPIC_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          COMMITS=$(cat /tmp/commits.txt)
+          DIFFSTAT=$(cat /tmp/diffstat.txt)
+          ISSUES=$(cat /tmp/issue-context.txt)
+
+          cat > /tmp/summary-prompt.txt << 'PROMPTEOF'
+          You are writing a PR description for a pull request to main.
+
+          Write a concise, high-level summary of the changes in this PR. Focus on:
+          - What changed and why (intent, not line-by-line)
+          - Key decisions or tradeoffs visible in the diff
+          - Any breaking changes or things reviewers should pay attention to
+
+          Format as markdown with a ## Summary heading and short bullet points.
+          Keep it to 3-8 bullets. No filler. No "this PR does...". Just the facts.
+
+          Do NOT include closing keywords (Closes, Fixes, etc.) — those are added separately.
+          Output ONLY the markdown summary, nothing else.
+          PROMPTEOF
+
+          cat >> /tmp/summary-prompt.txt << EOF
+
+          --- Commits ---
+          ${COMMITS}
+
+          --- Diffstat ---
+          ${DIFFSTAT}
+
+          --- Linked Issues ---
+          ${ISSUES}
+
+          --- Full Diff ---
+          $(head -c 100000 /tmp/full-diff.txt)
+          EOF
+
+          claude -p "$(cat /tmp/summary-prompt.txt)" \
+            --print \
+            --model claude-sonnet-4-6 \
+            --max-turns 1 \
+            > /tmp/summary.md
+
+      - name: Update PR description
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO=${{ github.repository }}
+          ISSUES=$(cat /tmp/issues.txt)
+
+          # Get current PR body
+          CURRENT_BODY=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json body -q '.body // ""')
+
+          SUMMARY=$(cat /tmp/summary.md)
+
+          # Build Closes lines, skipping any already present
+          CLOSES_LINES=""
+          for ISSUE in $ISSUES; do
+            if echo "$CURRENT_BODY" | grep -qiE "(closes|close|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#${ISSUE}\b"; then
+              echo "Issue #${ISSUE} already linked"
+              continue
+            fi
+            CLOSES_LINES="${CLOSES_LINES}Closes #${ISSUE}\n"
+          done
+
+          # Assemble the new body
+          # If user already wrote something, keep it and append below
+          NEW_BODY=""
+          if [ -n "$CURRENT_BODY" ]; then
+            NEW_BODY="${CURRENT_BODY}\n\n---\n\n"
+          fi
+
+          NEW_BODY="${NEW_BODY}${SUMMARY}"
+
+          if [ -n "$CLOSES_LINES" ]; then
+            NEW_BODY="${NEW_BODY}\n\n---\n\n${CLOSES_LINES}"
+          fi
+
+          printf "%b" "$NEW_BODY" > /tmp/pr-body.txt
+          gh pr edit "$PR_NUMBER" --repo "$REPO" --body-file /tmp/pr-body.txt
+
+          echo "Updated PR #${PR_NUMBER}"
