@@ -182,7 +182,8 @@ fi
 
 # Create dirs
 if [[ "$DRY_RUN" == "false" ]]; then
-  mkdir -p "$PROJECT_DIR"/.claude/{agents,skills,commands,rules,memory}
+  mkdir -p "$PROJECT_DIR"/.claude/{agents,skills,commands,rules,memory,prompts}
+  mkdir -p "$PROJECT_DIR"/.github/workflows
   mkdir -p "$PROJECT_DIR"/docs/{workflows,features,solutions,reference}
 fi
 
@@ -213,6 +214,16 @@ done
 for f in "$TEMPLATE_DIR"/.claude/rules/*.md; do
   [[ -f "$f" ]] || continue
   copy_if_missing "$f" "$PROJECT_DIR/.claude/rules/$(basename "$f")"
+done
+
+# Copy CI workflow and prompts
+for f in "$TEMPLATE_DIR"/.github/workflows/*.yml; do
+  [[ -f "$f" ]] || continue
+  copy_if_missing "$f" "$PROJECT_DIR/.github/workflows/$(basename "$f")"
+done
+for f in "$TEMPLATE_DIR"/.claude/prompts/*.md; do
+  [[ -f "$f" ]] || continue
+  copy_if_missing "$f" "$PROJECT_DIR/.claude/prompts/$(basename "$f")"
 done
 
 # Add .claude/memory and .claude/.backups to .gitignore
