@@ -56,17 +56,6 @@ Rules:
 - Use `/compound` to capture patterns worth preserving across sessions
 - Always run `/end-session` before closing
 
-## Pipeline Discipline — No Shortcuts
-
-| Rationalization | Why It's Wrong | Do This Instead |
-|----------------|---------------|-----------------|
-| "This is a small change" | Small changes cause the most drift | Short spec is fine — still write one |
-| "I need more context first" | Exploring without a plan causes drift | Plan first, explore within it |
-| "Let me just try something" | Throwaway code becomes production | Spec → Plan → Code. Always. |
-| "The tests can come after" | They never do | RED before GREEN |
-| "I understand the requirements" | You understand your assumptions | Write them down, confirm |
-| "This is obvious, skip docs" | Obvious to you now, opaque to next session | Document it |
-
 ## Reference Docs
 - `@docs/reference/commands.md` — what each command does and when to use it
 - `@docs/reference/agents.md` — what each agent does and how they're invoked
@@ -82,7 +71,9 @@ Rules:
 - Do NOT add "Co-Authored-By" lines to commit messages — ever, in any project
 - Do NOT tag issue numbers (`#N`) in commits unless the commit is directly related to that issue
 - Branch naming convention: `<type>/<issue-number>-<short-desc>` (e.g. `feature/42-coverage-calc`)
-- Commit messages start with issue number: `#42 add coverage calculation`
+- Commit messages use conventional prefix + issue number: `feat: #42 add coverage calculation`
+- Prefixes: `feat:` (or `feature:`), `fix:`, `chore:`, `docs:`, `refactor:`, `test:` — required for changelog generation
+- Both `feat:` and `feature:` are accepted as feature prefixes
 - PRs must use `Closes #N` in description — branch name alone does NOT auto-link
 
 ## Notion Task Discipline
