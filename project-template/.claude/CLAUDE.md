@@ -36,11 +36,11 @@
      Delete these comments and list your project-specific paths. -->
 
 ## Project Config
-<!-- Integration config for global commands (/work-issue, /board, /backlog-notion, /update-notion-task).
+<!-- Integration config for global commands (/work-issue, /board, /backlog, /update-issue).
      Fill in the values relevant to your project. Delete unused sections.
      Run /setup to fill this in interactively. -->
 ```yaml
-pm_tool: none                            # notion | linear | github-projects | none
+pm_tool: none                            # github-projects | none
 base_branch: main                        # branch all work starts from
 # dev_domain: backend                    # frontend | backend | infra | ios | fullstack (auto-detected if missing)
 test_commands:
@@ -48,14 +48,9 @@ test_commands:
 # build_commands:
 #   - npm run build
 
-# Notion integration (only if pm_tool: notion)
-# notion_datasource: <data-source-id>
-# notion_project: https://www.notion.so/<project-page-id>
-# notion_goal: https://www.notion.so/<goal-page-id>
-# notion_pillar: https://www.notion.so/<pillar-page-id>
-# notion_assignee: user://<user-id>
-# notion_statuses: [Not started, In Progress, Done]
-# notion_kanban_view: view://<view-id>
+# GitHub Projects integration (only if pm_tool: github-projects)
+# github_project_number: <number>        # gh project list --owner <org> to find it
+# github_project_statuses: [Backlog, Ready, In Progress, In Review, Done]
 
 # GitHub issue types (optional — for GraphQL type assignment)
 # github_issue_types:

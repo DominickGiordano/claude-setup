@@ -76,11 +76,11 @@ Rules:
 - Both `feat:` and `feature:` are accepted as feature prefixes
 - PRs must use `Closes #N` in description — branch name alone does NOT auto-link
 
-## Notion Task Discipline
-- Always check off completed subtasks before marking a task Done
-- Note skipped subtasks with reason
-- Append a completion note with date and brief summary
-- Never flip Status → Done without updating content first
+## Issue Discipline
+- Post a work plan comment before starting implementation
+- Post a completion comment when done — include what changed, root cause, discovered issues
+- Move the card on the project board to match actual status
+- Create new issues for problems discovered during debugging — don't let them get lost
 
 ## Lessons
 - Do NOT put project-specific rules in `~/.claude/CLAUDE.md`. Move them to the project's `.claude/CLAUDE.md` or `.claude/rules/`.

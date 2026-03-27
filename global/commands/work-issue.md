@@ -8,23 +8,10 @@ Full dev cycle orchestrator. Takes a GitHub issue number, loads all context, pla
 
 ### 1. Load Context
 - Fetch the GitHub issue with ALL comments: `gh issue view {number} --json title,body,labels,assignees,comments`
-- **Read ALL comments** — look for CI triage bot analysis with: type, priority, scope, branch name, Notion link, files involved, recommended approach
-- Extract from triage comment: branch name, PM task URL, file list, recommended approach
+- **Read ALL comments** — look for CI triage bot analysis with: type, priority, scope, branch name, files involved, recommended approach
+- Extract from triage comment: branch name, file list, recommended approach
 - If no triage comment exists, do your own quick assessment
 - Show the user a summary: issue title, type, priority, triage findings, recommended approach
-
-#### Notion Task — Find or Create
-If `pm_tool: notion` in Project Config:
-
-1. **Search for existing task**: look for `notion.so` URL in issue comments first, then `mcp__claude_ai_Notion__notion-search` with the issue title
-2. **If found**: fetch its content with `mcp__claude_ai_Notion__notion-fetch`
-3. **If NOT found**: create one immediately using `mcp__claude_ai_Notion__notion-create-pages`:
-   - Use `notion_datasource`, `notion_project`, `notion_goal`, `notion_pillar`, `notion_assignee` from Project Config
-   - Name: issue title (under 60 chars)
-   - Status: `In Progress`
-   - Priority: map from issue labels or default `P3 - Medium`
-   - Content: placeholder with issue link — will be filled in step 3
-   - Add the new Notion link as a comment on the GitHub issue: `gh issue comment {number} --body "Notion task: {notion_url}"`
 
 ### 2. Checkout & Rebase
 - Read `base_branch` from Project Config (default: `develop`, fallback `main`)
@@ -44,17 +31,14 @@ If `pm_tool: notion` in Project Config:
 
 > **Common mistake:** Do NOT use `git checkout -b {branch} origin/{branch}` — this creates a new local branch that doesn't track the remote. Use `--track` to set up tracking correctly.
 
-### 3. Update Notion Task with Work Plan
-If `pm_tool: notion`:
+### 3. Post Work Plan to Issue
 
-Update the Notion task with a **detailed, well-formatted work plan** using `mcp__claude_ai_Notion__notion-update-page`. This is NOT optional — the task must reflect what we're about to do BEFORE we start coding.
+Post a **detailed, well-formatted work plan** as a comment on the GitHub issue. This is NOT optional — the issue must reflect what we're about to do BEFORE we start coding.
 
-Set status to `In Progress` and write the following content structure:
-
-```markdown
+```bash
+gh issue comment {number} --body "$(cat <<'EOF'
 ## Work Plan
 
-**Issue:** #{number} — {title}
 **Branch:** `{branch-name}`
 **Date Started:** {YYYY-MM-DD}
 
@@ -75,16 +59,21 @@ Set status to `In Progress` and write the following content structure:
 
 ### Risks & Gotchas
 - {Anything non-obvious discovered during analysis}
+EOF
+)"
 ```
 
-**Formatting rules for Notion content:**
-- **CRITICAL**: The `new_str` / content field must contain **actual newlines**, not escaped `\n` literals. Escaped `\n` renders as one giant blob in Notion. Use real multi-line strings.
-- Use headers (`##`, `###`) to separate sections — never a wall of text
-- Subtasks as `- [ ]` checkboxes — every task needs at least 3
-- Bold key terms and file paths
-- Keep each bullet under 2 lines
-- Always `notion-fetch` after updating to verify the content rendered correctly
-- If `pm_tool: none` or not set: skip this step
+If `pm_tool: github-projects` in Project Config, also move the issue on the project board:
+1. Add issue to project (if not already): `gh project item-add {github_project_number} --owner {org} --url {issue_url}`
+2. Get the item ID and status field ID:
+   ```bash
+   gh project field-list {github_project_number} --owner {org} --format json
+   gh project item-list {github_project_number} --owner {org} --format json
+   ```
+3. Set status to **In Progress** (or the equivalent from `github_project_statuses` in Project Config):
+   ```bash
+   gh project item-edit --project-id {project_id} --id {item_id} --field-id {status_field_id} --single-select-option-id {option_id}
+   ```
 
 ### 4. Deep Analysis
 Before suggesting an approach, do a thorough codebase analysis:
@@ -132,11 +121,7 @@ Context:     [file summary — e.g. "3 files in src/api/, 1 migration"]
 
 Ask the user to confirm the domain classification before proceeding.
 
-### 6. Refine Notion Subtasks from Plan
-- If `pm_tool: notion` AND the user chose `/plan` or `/brainstorm`: update the Notion task subtasks to match the approved plan's implementation steps — replace any generic items with specific ones from the plan doc
-- If no PM or `/fix` path: skip
-
-### 7. Determine Approach — ASK the user
+### 6. Determine Approach — ASK the user
 Based on the analysis, recommend one of:
 - **`/fix`** — small scope, clear path, 1-2 files
 - **`/plan`** — medium scope, needs a written plan before coding
@@ -144,9 +129,7 @@ Based on the analysis, recommend one of:
 
 Present the recommendation and **ask the user to confirm**. Ask any clarifying questions.
 
-**For `/plan` or `/brainstorm`:** After the brainstorm/plan is written and approved, update PM with DETAILED subtasks BEFORE starting implementation.
-
-### 8. Do the Work
+### 7. Do the Work
 Execute the chosen approach using the classified domain specialist:
 
 **Small scope (`/fix`):** Load the domain standards skill inline and implement in the main session.
@@ -167,12 +150,12 @@ Always:
 - Run each command in `test_commands` from Project Config after changes
 - Run each command in `build_commands` from Project Config if relevant files changed
 
-### 9. Review
+### 8. Review
 - Show a summary of all files changed and why
 - Run tests/linting one final time
 - Ask the user if they want to review before committing
 
-### 10. Commit & Push
+### 9. Commit & Push
 - Stage the relevant files (not `.env`, credentials, etc.)
 - Commit with clear message — only tag issue number if directly related
 - **Do NOT push** — show the user the commit and let them push:
@@ -181,22 +164,19 @@ Always:
   git push origin {branch-name}
   ```
 
-### 11. Update Notion Task — MANDATORY Completion Update
+### 10. Completion Update — MANDATORY
 
-> **THIS STEP IS NOT OPTIONAL.** Do NOT skip this step. Do NOT proceed to step 12 without completing this. Every work-issue session MUST end with a detailed Notion update. This is the most commonly skipped step and it causes major information loss.
+> **THIS STEP IS NOT OPTIONAL.** Do NOT skip this step. Do NOT proceed to step 11 without completing this. Every work-issue session MUST end with a completion update on the issue.
 
-If `pm_tool: notion`:
+Post a **completion comment** on the GitHub issue:
 
-1. **Fetch the current task content** with `mcp__claude_ai_Notion__notion-fetch`
-2. **Update content BEFORE status** using `mcp__claude_ai_Notion__notion-update-page` — append a well-formatted completion section:
-
-```markdown
+```bash
+gh issue comment {number} --body "$(cat <<'EOF'
 ## Completion Notes — {YYYY-MM-DD}
 
 ### What Was Done
 - {Specific change 1 — what file/module, what changed, why}
 - {Specific change 2}
-- {etc.}
 
 ### Root Cause (if bug fix)
 - {What was actually wrong and why}
@@ -206,31 +186,23 @@ If `pm_tool: notion`:
 
 ### Discovered Issues
 - {Bugs, tech debt, or risks found while debugging that were NOT part of this task}
-- {For each: severity estimate and whether it was added to the board}
+- {For each: severity estimate and whether a new issue was created}
 
 ### Files Changed
 - `{path/to/file.ts}` — {one-line summary of change}
+EOF
+)"
 ```
 
-3. **Check off completed subtasks**: `- [ ]` → `- [x]` for each done item
-4. **Note skipped subtasks** with reason — don't just leave them unchecked
-5. **Add any new subtasks** that emerged during work
-6. **For discovered issues**: offer to create new tasks via `/backlog-notion` — these are valuable and should not be lost
-7. **Update status**:
-   - ALL subtasks done → Status: `Done`
-   - Some remain → keep `In Progress`, note what's left in the completion section
+If `pm_tool: github-projects`, move the issue on the project board (use `github_project_statuses` from Project Config for valid columns):
+- Ready for review → move to **In Review**
+- ALL work done → move to **Done**
+- Partially done → keep **In Progress**, note what's left
+- Blocked → note the blocker in a comment
 
-**Formatting rules:**
-- **CRITICAL**: Content must use **actual newlines**, not escaped `\n` — escaped newlines render as one blob in Notion
-- Use `##` and `###` headers — never dump a paragraph
-- Bold file paths and key terms
-- Each bullet is one concrete fact, not a vague summary
-- Include enough detail that someone reading the task 2 weeks later understands what happened
-- Always `notion-fetch` after updating to verify it rendered correctly
+For discovered issues: offer to create new GitHub issues — these are valuable and should not be lost.
 
-If no PM: skip
-
-### 12. Wrap Up
+### 11. Wrap Up
 Ask the user:
 - **Continue?** Pick up another issue (`/work-issue {next}`)
 - **End session?** Run `/end-session` to save learnings
@@ -247,12 +219,11 @@ Ask the user:
 - ALWAYS ask clarifying questions before starting work
 - ALWAYS rebase onto latest base branch before starting
 - ALWAYS run test_commands after changes
-- ALWAYS write a detailed work plan to Notion BEFORE starting implementation (step 3)
-- ALWAYS write a detailed completion update to Notion AFTER finishing work (step 11) — this is the #1 most skipped step and it MUST happen
-- ALWAYS offer to create new tasks for issues discovered during debugging
+- ALWAYS post a work plan comment on the issue BEFORE starting implementation (step 3)
+- ALWAYS post a completion comment on the issue AFTER finishing work (step 10) — this is the #1 most skipped step and it MUST happen
+- ALWAYS offer to create new issues for problems discovered during debugging
 - NEVER push without showing the user what's being pushed
-- NEVER skip the Notion update if pm_tool is configured — not for "small" changes, not for "quick" fixes, NEVER
-- NEVER flip a Notion task to Done without writing completion notes first
+- NEVER skip the completion update — not for "small" changes, not for "quick" fixes, NEVER
 - If the issue is bigger than expected (10+ files, architectural decisions), stop and recommend breaking into sub-issues
 
 $ARGUMENTS

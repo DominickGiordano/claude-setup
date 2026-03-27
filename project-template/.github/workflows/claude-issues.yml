@@ -26,32 +26,9 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Install Claude Code and Notion MCP
+      - name: Install Claude Code
         run: |
           npm install -g @anthropic-ai/claude-code@latest
-          npm install -g @notionhq/notion-mcp-server
-
-      - name: Set up Notion MCP config
-        env:
-          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        run: |
-          if [ -z "$NOTION_TOKEN" ]; then
-            echo "NOTION_TOKEN not set, skipping MCP config"
-            exit 0
-          fi
-          cat > /tmp/mcp-config.json << 'MCPEOF'
-          {
-            "mcpServers": {
-              "notion": {
-                "command": "notion-mcp-server",
-                "env": {
-                  "NOTION_TOKEN": "PLACEHOLDER"
-                }
-              }
-            }
-          }
-          MCPEOF
-          sed -i "s|PLACEHOLDER|${NOTION_TOKEN}|g" /tmp/mcp-config.json
 
       - name: Acknowledge trigger
         env:
@@ -79,16 +56,9 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.DEV_ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
         run: |
           ISSUE_BODY=$(cat /tmp/issue-body.txt)
           SYSTEM_PROMPT=$(cat .claude/prompts/ci-triage.md)
-
-          # Build MCP flag if config exists
-          MCP_FLAG=""
-          if [ -f /tmp/mcp-config.json ]; then
-            MCP_FLAG="--mcp-config /tmp/mcp-config.json"
-          fi
 
           # Write the user prompt to a file (avoids ENAMETOOLONG)
           cat > /tmp/triage-prompt.txt << PROMPTEOF
@@ -101,7 +71,7 @@ jobs:
           1. Analyze and produce your triage report
           2. Add labels with: gh issue edit ${{ steps.issue.outputs.number }} --add-label <label>
           3. Create a branch off the base branch (read from Project Config in CLAUDE.md)
-          4. Create a PM task if Notion MCP is available (read IDs from Project Config in CLAUDE.md)
+          4. Add to GitHub Project board if configured (read from Project Config in CLAUDE.md)
           PROMPTEOF
 
           claude -p "$(cat /tmp/triage-prompt.txt)" \
@@ -109,8 +79,8 @@ jobs:
             --model claude-sonnet-4-6 \
             --system-prompt "$SYSTEM_PROMPT" \
             --max-turns 15 \
-            --allowedTools "Read,Glob,Grep,Bash(git fetch:*),Bash(git checkout:*),Bash(git push:*),Bash(git branch:*),Bash(gh issue edit:*),Bash(gh label create:*),mcp__notion__API-post-page,mcp__notion__API-post-search,mcp__notion__API-retrieve-a-database,mcp__notion__API-query-data-source,mcp__notion__API-retrieve-a-page,mcp__notion__API-patch-page" \
-            $MCP_FLAG > /tmp/triage-output.md
+            --allowedTools "Read,Glob,Grep,Bash(git fetch:*),Bash(git checkout:*),Bash(git push:*),Bash(git branch:*),Bash(gh issue edit:*),Bash(gh label create:*),Bash(gh project item-add:*),Bash(gh project item-edit:*),Bash(gh project item-list:*),Bash(gh project field-list:*)" \
+            > /tmp/triage-output.md
 
       - name: Comment on issue
         env:

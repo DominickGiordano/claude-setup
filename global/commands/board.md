@@ -2,32 +2,30 @@
 
 Fetch the current state of the project's kanban board. Shows what's active, what's next, and what's blocked.
 
-**Reads `pm_tool` and related config from `## Project Config` in the project's CLAUDE.md.** If no PM config, show a message explaining how to set it up.
+**Reads `pm_tool` and related config from `## Project Config` in the project's CLAUDE.md.** If no PM config, show GitHub issues grouped by label.
 
 ## Steps
 
-### If `pm_tool: notion`
+### If `pm_tool: github-projects`
 
-1. **Query the board**: Use `mcp__claude_ai_Notion__notion-query-database-view` on `notion_kanban_view` from Project Config. If that fails, use `mcp__claude_ai_Notion__notion-search` with the project name.
+1. **Query the board**: Use `gh project item-list {github_project_number} --owner {org} --format json` to get all items with status, title, and metadata.
 
-2. **Group and display** by status (use `notion_statuses` from Project Config for ordering):
+2. **Group and display** by status columns (use `github_project_statuses` from Project Config for ordering, default: `[Backlog, Ready, In Progress, In Review, Done]`):
 
    **ALWAYS use this table format for every section:**
    ```
    ### In Progress (N)
-   | Task | Priority | Description | Subtasks |
-   |------|----------|-------------|----------|
-   | **Task name** | P1 Critical | One-line summary | 2/4 done |
+   | Issue | Priority | Description | Assignee |
+   |-------|----------|-------------|----------|
+   | **#42 Task name** | P1 Critical | One-line summary | @user |
    ```
    - Every section uses the same table — never switch to bullets or prose
-   - Description = first line of the Notion page content
-   - Subtasks = "N/M done" if checklist exists, "-" if none
-   - Sort by priority within each table (P1 → P2 → P3)
+   - Sort by priority within each table (P1 → P2 → P3 → P4)
    - Recently completed (Done): show last 5 only
 
 3. **Summarize**:
-   - Tasks per status
-   - Highest priority Not started item
+   - Items per status
+   - Highest priority Todo item
    - Any blocked items
    - Suggest what to work on next
 
@@ -43,13 +41,12 @@ Group by labels (bug, enhancement, etc.) and display in table format.
 ```
 /board              — full board overview
 /board in-progress  — just what's active
-/board backlog      — just Not started items
 /board blocked      — just blocked items
+/board todo         — just Todo items
 ```
 
 ## Rules
 - Keep output concise — this is a quick status check
-- ALWAYS fetch page content for each task to get the description
 - ALWAYS use table format — never bullets for task lists
 - Sort by priority within each section
 

@@ -79,36 +79,31 @@ Options: `--force` (overwrite with backups, except CLAUDE.md), `--dry-run` (prev
 
 ## Project Config
 
-Global commands (`/work-issue`, `/board`, `/backlog-notion`, `/update-notion-task`) adapt to each project by reading a `## Project Config` block in the project's `.claude/CLAUDE.md`:
+Global commands (`/work-issue`, `/board`, `/backlog`, `/update-issue`) adapt to each project by reading a `## Project Config` block in the project's `.claude/CLAUDE.md`:
 
 ```yaml
-pm_tool: notion                          # notion | linear | github-projects | none
+pm_tool: github-projects                 # github-projects | none
 base_branch: develop                     # branch all work starts from
 test_commands:
   - python -m pytest tests/ -x -q
 
-# Notion integration (only if pm_tool: notion)
-notion_datasource: <data-source-id>
-notion_project: https://www.notion.so/<page-id>
-notion_goal: https://www.notion.so/<page-id>
-notion_pillar: https://www.notion.so/<page-id>
-notion_assignee: user://<user-id>
-notion_statuses: [Not started, In Progress, Done]
-notion_kanban_view: view://<view-id>
+# GitHub Projects integration (only if pm_tool: github-projects)
+github_project_number: 1                 # gh project list --owner <org> to find it
+github_project_statuses: [Backlog, Ready, In Progress, In Review, Done]
 ```
 
-No config? Commands degrade gracefully — no Notion fields means PM steps are skipped, no test commands means Claude asks.
+No config? Commands degrade gracefully — no project board means PM steps are skipped, no test commands means Claude asks.
 
 ---
 
 ## CI Issue Triage
 
-Template GitHub Action in `project-template/.github/workflows/claude-issues.yml`. Triggers on new issues or `@claude` in comments. Claude triages, labels, creates a branch, and optionally creates a Notion task — all config-driven from Project Config.
+Template GitHub Action in `project-template/.github/workflows/claude-issues.yml`. Triggers on new issues or `@claude` in comments. Claude triages, labels, creates a branch, and optionally adds to a GitHub Project board — all config-driven from Project Config.
 
 To add to a repo:
 1. Copy `project-template/.github/workflows/claude-issues.yml` to your repo
 2. Copy `project-template/.claude/prompts/ci-triage.md` to your repo
-3. Add `DEV_ANTHROPIC_API_KEY` to repo secrets (and `NOTION_TOKEN` if using Notion)
+3. Add `DEV_ANTHROPIC_API_KEY` to repo secrets
 4. Make sure your CLAUDE.md has a `## Project Config` block
 
 ---
@@ -192,10 +187,10 @@ Full walkthroughs with examples: `docs/workflows/feature-workflow.md` and `docs/
 | `/sync-memory` | Backfill session-log from git when /end-session was skipped |
 | `/catchup` | Resume context from last session |
 | `/end-session` | Log session, update Current Focus, clear dirty-files |
-| `/work-issue [#]` | Full dev cycle: load issue → checkout → analyze → code → test → commit → update PM |
-| `/board` | View PM kanban board (Notion or GitHub Issues fallback) |
-| `/backlog-notion [desc]` | Create Notion task + GitHub issue + branch |
-| `/update-notion-task [name]` | Update PM task: check subtasks, change status, add notes |
+| `/work-issue [#]` | Full dev cycle: load issue → checkout → analyze → code → test → commit → update issue |
+| `/board` | View project board (GitHub Projects or Issues fallback) |
+| `/backlog [desc]` | Create GitHub issue + branch + add to project board |
+| `/update-issue [# or name]` | Update issue: post comment, change status, move on board |
 | `/audit-config` | Health check — CLAUDE.md size, stale content, missing rules |
 | `/setup` | Interactive project setup for new devs |
 
