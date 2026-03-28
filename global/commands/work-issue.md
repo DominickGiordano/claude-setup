@@ -11,6 +11,8 @@ Full dev cycle orchestrator. Takes a GitHub issue number, loads all context, pla
 - **Read ALL comments** — look for CI triage bot analysis with: type, priority, scope, branch name, files involved, recommended approach
 - Extract from triage comment: branch name, file list, recommended approach
 - If no triage comment exists, do your own quick assessment
+- **Assign to current user** if not already assigned: `gh issue edit {number} --add-assignee "@me"`
+- **Backfill type label** if missing (`bug`, `enhancement`, or `documentation`): classify from the issue content and add via `gh issue edit {number} --add-label {type}`
 - Show the user a summary: issue title, type, priority, triage findings, recommended approach
 
 ### 2. Checkout & Rebase

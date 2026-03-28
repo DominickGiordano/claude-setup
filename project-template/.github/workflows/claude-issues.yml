@@ -70,8 +70,9 @@ jobs:
           Repository is checked out at $(pwd). Analyze the codebase, then:
           1. Analyze and produce your triage report
           2. Add labels with: gh issue edit ${{ steps.issue.outputs.number }} --add-label <label>
-          3. Create a branch off the base branch (read from Project Config in CLAUDE.md)
-          4. Add to GitHub Project board if configured (read from Project Config in CLAUDE.md)
+          3. Estimate difficulty points (Fibonacci: 1,2,3,5,8,13) based on scope and complexity
+          4. Create a branch off the base branch (read from Project Config in CLAUDE.md)
+          5. Add to GitHub Project board if configured — set status and Points field
           PROMPTEOF
 
           claude -p "$(cat /tmp/triage-prompt.txt)" \
