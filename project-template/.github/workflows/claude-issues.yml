@@ -17,6 +17,7 @@ jobs:
       (github.event_name == 'issues') ||
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude'))
     runs-on: ubuntu-latest
+    environment: production
     timeout-minutes: 10
     steps:
       - name: Checkout repository
@@ -54,7 +55,7 @@ jobs:
 
       - name: Run Claude triage
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.DEV_ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ISSUE_BODY=$(cat /tmp/issue-body.txt)
