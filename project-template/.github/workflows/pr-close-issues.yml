@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  issues: read
 
 jobs:
   link-issues:
@@ -39,16 +40,25 @@ jobs:
           echo "$COMMITS" > /tmp/commits.txt
 
           # Extract issue numbers: filter out merge commits, then grab all #N from the rest
-          CANDIDATES=$(echo "$COMMITS" | grep -viE '^Merge (pull request|branch)' | grep -oE '#[0-9]+' | sort -t'#' -k2 -n -u | tr -d '#' || true)
+          NON_MERGE=$(echo "$COMMITS" | grep -viE '^Merge (pull request|branch)' || true)
+          echo "::group::Non-merge commit lines"
+          echo "$NON_MERGE"
+          echo "::endgroup::"
+
+          CANDIDATES=$(echo "$NON_MERGE" | grep -oE '#[0-9]+' | sort -t'#' -k2 -n -u | tr -d '#' || true)
+          echo "Candidates: $CANDIDATES"
 
           # Validate each candidate is an actual issue (not a PR)
           : > /tmp/issues.txt
           : > /tmp/issue-context.txt
           for NUM in $CANDIDATES; do
-            TITLE=$(gh issue view "$NUM" --repo "$REPO" --json title -q '.title' 2>/dev/null) || continue
+            echo "Validating #${NUM}..."
+            TITLE=$(gh issue view "$NUM" --repo "$REPO" --json title -q '.title' 2>/dev/null) || { echo "  -> skipped (not an issue)"; continue; }
+            echo "  -> found: ${TITLE}"
             echo "$NUM" >> /tmp/issues.txt
             echo "#${NUM}: ${TITLE}" >> /tmp/issue-context.txt
           done
+          echo "Final issues: $(cat /tmp/issues.txt | tr '\n' ' ')"
 
           # Generate the diff stat for the summary
           git diff --stat "${BASE}..${HEAD}" > /tmp/diffstat.txt
