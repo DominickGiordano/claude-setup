@@ -38,10 +38,8 @@ jobs:
           COMMITS=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/commits" --paginate -q '.[].commit.message')
           echo "$COMMITS" > /tmp/commits.txt
 
-          # Extract issue numbers only from conventional commit prefixes and closing keywords
-          # Matches: feat: #42, fix: #42, Closes #42, etc.
-          # Does NOT match: Merge pull request #15 from ...
-          CANDIDATES=$(echo "$COMMITS" | grep -oiE '(feat|feature|fix|chore|refactor|docs|test|closes|close|closed|fixes|fixed|resolve|resolves|resolved):?\s*#[0-9]+' | grep -oE '#[0-9]+' | sort -t'#' -k2 -n -u | tr -d '#' || true)
+          # Extract issue numbers: filter out merge commits, then grab all #N from the rest
+          CANDIDATES=$(echo "$COMMITS" | grep -viE '^Merge (pull request|branch)' | grep -oE '#[0-9]+' | sort -t'#' -k2 -n -u | tr -d '#' || true)
 
           # Validate each candidate is an actual issue (not a PR)
           : > /tmp/issues.txt
@@ -51,7 +49,6 @@ jobs:
             echo "$NUM" >> /tmp/issues.txt
             echo "#${NUM}: ${TITLE}" >> /tmp/issue-context.txt
           done
-          ISSUES=$(cat /tmp/issues.txt)
 
           # Generate the diff stat for the summary
           git diff --stat "${BASE}..${HEAD}" > /tmp/diffstat.txt
@@ -79,6 +76,7 @@ jobs:
 
           Format as markdown with a ## Summary heading and short bullet points.
           Keep it to 3-8 bullets. No filler. No "this PR does...". Just the facts.
+          Each bullet should reference the issue number(s) it relates to in parentheses, e.g. "(#42)".
 
           Do NOT include closing keywords (Closes, Fixes, etc.) — those are added separately.
           Output ONLY the markdown summary, nothing else.
@@ -120,9 +118,15 @@ jobs:
 
           SUMMARY=$(cat /tmp/summary.md)
 
-          # Build Closes lines from all linked issues
+          # Collect existing Closes #N from body (with or without markers)
+          EXISTING_CLOSES=$(printf "%b" "$CURRENT_BODY" | grep -oiE '(closes|close|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#[0-9]+' | grep -oE '#[0-9]+' | tr -d '#' | sort -n -u || true)
+
+          # Union existing closes with newly discovered issues
+          ALL_ISSUES=$(printf "%s\n%s" "$EXISTING_CLOSES" "$(cat /tmp/issues.txt)" | grep -v '^$' | sort -n -u || true)
+
+          # Build Closes lines
           CLOSES_LINES=""
-          for ISSUE in $ISSUES; do
+          for ISSUE in $ALL_ISSUES; do
             CLOSES_LINES="${CLOSES_LINES}Closes #${ISSUE}\n"
           done
 
@@ -131,11 +135,16 @@ jobs:
 
           AUTO_CLOSES=""
           if [ -n "$CLOSES_LINES" ]; then
-            AUTO_CLOSES="<!-- auto-closes -->\n---\n\n${CLOSES_LINES}<!-- /auto-closes -->"
+            AUTO_CLOSES="<!-- auto-closes -->\n${CLOSES_LINES}<!-- /auto-closes -->"
           fi
 
-          # Strip existing auto-generated sections from the current body
-          CLEAN_BODY=$(printf "%b" "$CURRENT_BODY" | perl -0777 -pe 's/\n*---\n*\n*<!-- auto-summary -->.*?<!-- \/auto-summary -->//gs' | perl -0777 -pe 's/\n*<!-- auto-summary -->.*?<!-- \/auto-summary -->//gs' | perl -0777 -pe 's/\n*<!-- auto-closes -->.*?<!-- \/auto-closes -->//gs')
+          # Strip existing auto-generated sections AND any legacy closes blocks from the body
+          CLEAN_BODY=$(printf "%b" "$CURRENT_BODY" \
+            | perl -0777 -pe 's/\n*---\n*\n*<!-- auto-summary -->.*?<!-- \/auto-summary -->//gs' \
+            | perl -0777 -pe 's/\n*<!-- auto-summary -->.*?<!-- \/auto-summary -->//gs' \
+            | perl -0777 -pe 's/\n*<!-- auto-closes -->.*?<!-- \/auto-closes -->//gs' \
+            | perl -0777 -pe 's/\n*---\n*\n*(Closes\s+#\d+\n*)+//gis' \
+            | perl -0777 -pe 's/\n*(Closes\s+#\d+\n*)+//gis')
 
           # Trim trailing whitespace/newlines from clean body
           CLEAN_BODY=$(echo "$CLEAN_BODY" | sed -e 's/[[:space:]]*$//')
@@ -143,14 +152,14 @@ jobs:
           # Assemble the new body
           NEW_BODY=""
           if [ -n "$CLEAN_BODY" ]; then
-            NEW_BODY="${CLEAN_BODY}\n\n---\n\n"
+            NEW_BODY="${CLEAN_BODY}\n\n"
+          fi
+
+          if [ -n "$AUTO_CLOSES" ]; then
+            NEW_BODY="${NEW_BODY}${AUTO_CLOSES}\n\n---\n\n"
           fi
 
           NEW_BODY="${NEW_BODY}${AUTO_SUMMARY}"
-
-          if [ -n "$AUTO_CLOSES" ]; then
-            NEW_BODY="${NEW_BODY}\n\n${AUTO_CLOSES}"
-          fi
 
           printf "%b" "$NEW_BODY" > /tmp/pr-body.txt
           gh pr edit "$PR_NUMBER" --repo "$REPO" --body-file /tmp/pr-body.txt
