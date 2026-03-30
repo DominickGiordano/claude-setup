@@ -38,15 +38,16 @@ jobs:
           COMMITS=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/commits" --paginate -q '.[].commit.message')
           echo "$COMMITS" > /tmp/commits.txt
 
-          # Extract unique issue numbers from commit messages
-          # Matches: #42, feat: #42, fix: #42, Closes #42, etc.
-          CANDIDATES=$(echo "$COMMITS" | grep -oE '#[0-9]+' | sort -t'#' -k2 -n -u | tr -d '#' || true)
+          # Extract issue numbers only from conventional commit prefixes and closing keywords
+          # Matches: feat: #42, fix: #42, Closes #42, etc.
+          # Does NOT match: Merge pull request #15 from ...
+          CANDIDATES=$(echo "$COMMITS" | grep -oiE '(feat|feature|fix|chore|refactor|docs|test|closes|close|closed|fixes|fixed|resolve|resolves|resolved):?\s*#[0-9]+' | grep -oE '#[0-9]+' | sort -t'#' -k2 -n -u | tr -d '#' || true)
 
-          # Filter to only actual issues (not PRs or merge refs)
+          # Validate each candidate is an actual issue (not a PR)
           : > /tmp/issues.txt
           : > /tmp/issue-context.txt
           for NUM in $CANDIDATES; do
-            TITLE=$(gh issue view "$NUM" --repo "$REPO" --json title,stateReason -q '.title' 2>/dev/null) || continue
+            TITLE=$(gh issue view "$NUM" --repo "$REPO" --json title -q '.title' 2>/dev/null) || continue
             echo "$NUM" >> /tmp/issues.txt
             echo "#${NUM}: ${TITLE}" >> /tmp/issue-context.txt
           done
@@ -119,27 +120,36 @@ jobs:
 
           SUMMARY=$(cat /tmp/summary.md)
 
-          # Build Closes lines, skipping any already present
+          # Build Closes lines from all linked issues
           CLOSES_LINES=""
           for ISSUE in $ISSUES; do
-            if echo "$CURRENT_BODY" | grep -qiE "(closes|close|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#${ISSUE}\b"; then
-              echo "Issue #${ISSUE} already linked"
-              continue
-            fi
             CLOSES_LINES="${CLOSES_LINES}Closes #${ISSUE}\n"
           done
 
-          # Assemble the new body
-          # If user already wrote something, keep it and append below
-          NEW_BODY=""
-          if [ -n "$CURRENT_BODY" ]; then
-            NEW_BODY="${CURRENT_BODY}\n\n---\n\n"
+          # Build the auto-generated sections with markers
+          AUTO_SUMMARY="<!-- auto-summary -->\n${SUMMARY}\n<!-- /auto-summary -->"
+
+          AUTO_CLOSES=""
+          if [ -n "$CLOSES_LINES" ]; then
+            AUTO_CLOSES="<!-- auto-closes -->\n---\n\n${CLOSES_LINES}<!-- /auto-closes -->"
           fi
 
-          NEW_BODY="${NEW_BODY}${SUMMARY}"
+          # Strip existing auto-generated sections from the current body
+          CLEAN_BODY=$(printf "%b" "$CURRENT_BODY" | perl -0777 -pe 's/\n*---\n*\n*<!-- auto-summary -->.*?<!-- \/auto-summary -->//gs' | perl -0777 -pe 's/\n*<!-- auto-summary -->.*?<!-- \/auto-summary -->//gs' | perl -0777 -pe 's/\n*<!-- auto-closes -->.*?<!-- \/auto-closes -->//gs')
 
-          if [ -n "$CLOSES_LINES" ]; then
-            NEW_BODY="${NEW_BODY}\n\n---\n\n${CLOSES_LINES}"
+          # Trim trailing whitespace/newlines from clean body
+          CLEAN_BODY=$(echo "$CLEAN_BODY" | sed -e 's/[[:space:]]*$//')
+
+          # Assemble the new body
+          NEW_BODY=""
+          if [ -n "$CLEAN_BODY" ]; then
+            NEW_BODY="${CLEAN_BODY}\n\n---\n\n"
+          fi
+
+          NEW_BODY="${NEW_BODY}${AUTO_SUMMARY}"
+
+          if [ -n "$AUTO_CLOSES" ]; then
+            NEW_BODY="${NEW_BODY}\n\n${AUTO_CLOSES}"
           fi
 
           printf "%b" "$NEW_BODY" > /tmp/pr-body.txt
