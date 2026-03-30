@@ -40,21 +40,23 @@ jobs:
 
           # Extract unique issue numbers from commit messages
           # Matches: #42, feat: #42, fix: #42, Closes #42, etc.
-          ISSUES=$(echo "$COMMITS" | grep -oE '#[0-9]+' | sort -t'#' -k2 -n -u | tr -d '#' || true)
-          echo "$ISSUES" > /tmp/issues.txt
+          CANDIDATES=$(echo "$COMMITS" | grep -oE '#[0-9]+' | sort -t'#' -k2 -n -u | tr -d '#' || true)
+
+          # Filter to only actual issues (not PRs or merge refs)
+          : > /tmp/issues.txt
+          : > /tmp/issue-context.txt
+          for NUM in $CANDIDATES; do
+            TITLE=$(gh issue view "$NUM" --repo "$REPO" --json title,stateReason -q '.title' 2>/dev/null) || continue
+            echo "$NUM" >> /tmp/issues.txt
+            echo "#${NUM}: ${TITLE}" >> /tmp/issue-context.txt
+          done
+          ISSUES=$(cat /tmp/issues.txt)
 
           # Generate the diff stat for the summary
           git diff --stat "${BASE}..${HEAD}" > /tmp/diffstat.txt
 
           # Generate the full diff for Claude to summarize
           git diff "${BASE}..${HEAD}" > /tmp/full-diff.txt
-
-          # Fetch issue titles for context
-          : > /tmp/issue-context.txt
-          for ISSUE in $ISSUES; do
-            TITLE=$(gh issue view "$ISSUE" --repo "$REPO" --json title -q '.title' 2>/dev/null || echo "(could not fetch)")
-            echo "#${ISSUE}: ${TITLE}" >> /tmp/issue-context.txt
-          done
 
       - name: Generate PR summary with Claude
         env:
