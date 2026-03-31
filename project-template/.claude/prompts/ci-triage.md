@@ -33,12 +33,8 @@ DO:
    - Commands: git fetch origin {base_branch} && git checkout -b {branch} origin/{base_branch} && git push origin {branch}
 9. If pm_tool is "github-projects" and github_project_number is set:
    - Add to project board: gh project item-add {github_project_number} --owner {org} --url {issue_url}
-   - Set status to Todo if possible
-   - Set the Estimate field (number field) to the estimated difficulty points from step 6:
-     1. Get the field ID: `gh project field-list {github_project_number} --owner {org} --format json` — find the "Estimate" field
-     2. Get the item ID: `gh project item-list {github_project_number} --owner {org} --format json` — find the item for this issue
-     3. Set estimate: `gh project item-edit --project-id {project_id} --id {item_id} --field-id {estimate_field_id} --number {points}`
-     - If no "Estimate" field exists, skip — the project owner needs to add a number field named "Estimate"
+   - If item-add fails (permissions), note it in the report and move on — do NOT retry
+   - Do NOT set status or estimate — `/work-issue` handles that locally
 
 Your output is posted as a GitHub issue comment. Use emojis and clean formatting:
 

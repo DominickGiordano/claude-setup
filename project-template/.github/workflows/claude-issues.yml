@@ -73,15 +73,15 @@ jobs:
           2. Add labels with: gh issue edit ${{ steps.issue.outputs.number }} --add-label <label>
           3. Estimate difficulty points (Fibonacci: 1,2,3,5,8,13) based on scope and complexity
           4. Create a branch off the base branch (read from Project Config in CLAUDE.md)
-          5. Add to GitHub Project board if configured — set status and Points field
+          5. Add to GitHub Project board if configured (just item-add, skip status/estimate)
           PROMPTEOF
 
           claude -p "$(cat /tmp/triage-prompt.txt)" \
             --print \
             --model claude-sonnet-4-6 \
             --system-prompt "$SYSTEM_PROMPT" \
-            --max-turns 15 \
-            --allowedTools "Read,Glob,Grep,Bash(git fetch:*),Bash(git checkout:*),Bash(git push:*),Bash(git branch:*),Bash(gh issue edit:*),Bash(gh label create:*),Bash(gh project item-add:*),Bash(gh project item-edit:*),Bash(gh project item-list:*),Bash(gh project field-list:*)" \
+            --max-turns 20 \
+            --allowedTools "Read,Glob,Grep,Bash(git fetch:*),Bash(git checkout:*),Bash(git push:*),Bash(git branch:*),Bash(gh issue edit:*),Bash(gh label create:*),Bash(gh project item-add:*)" \
             > /tmp/triage-output.md
 
       - name: Comment on issue
