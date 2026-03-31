@@ -59,19 +59,19 @@ jobs:
           ISSUE_NUM="${{ steps.issue.outputs.number }}"
           ISSUE_TITLE="${{ steps.issue.outputs.title }}"
 
-          cat > /tmp/triage-prompt.txt <<EOF
-Triage issue #${ISSUE_NUM}: ${ISSUE_TITLE}
-
-Issue body:
-${ISSUE_BODY}
-
-Repository is checked out at $(pwd). Analyze the codebase, then:
-1. Analyze and produce your triage report
-2. Add labels with: gh issue edit ${ISSUE_NUM} --add-label <label>
-3. Estimate difficulty points (Fibonacci: 1,2,3,5,8,13) based on scope and complexity
-4. Create a branch off the base branch (read from Project Config in CLAUDE.md)
-5. Add to GitHub Project board if configured (just item-add, skip status/estimate)
-EOF
+          {
+            echo "Triage issue #${ISSUE_NUM}: ${ISSUE_TITLE}"
+            echo ""
+            echo "Issue body:"
+            echo "$ISSUE_BODY"
+            echo ""
+            echo "Repository is checked out at $(pwd). Analyze the codebase, then:"
+            echo "1. Analyze and produce your triage report"
+            echo "2. Add labels with: gh issue edit ${ISSUE_NUM} --add-label <label>"
+            echo "3. Estimate difficulty points (Fibonacci: 1,2,3,5,8,13) based on scope and complexity"
+            echo "4. Create a branch off the base branch (read from Project Config in CLAUDE.md)"
+            echo "5. Add to GitHub Project board if configured (just item-add, skip status/estimate)"
+          } > /tmp/triage-prompt.txt
 
           echo "::group::Triage prompt"
           cat /tmp/triage-prompt.txt
