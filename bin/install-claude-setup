@@ -92,7 +92,7 @@ fi
 
 # Create directories
 if [[ "$DRY_RUN" == "false" ]]; then
-  mkdir -p "$CLAUDE_DIR"/{agents,skills,commands,output-styles,hooks}
+  mkdir -p "$CLAUDE_DIR"/{agents,skills,output-styles,hooks}
 fi
 
 # CLAUDE.md
@@ -117,10 +117,10 @@ for f in "$SOURCE_DIR"/skills/*.md; do
   copy_file "$f" "$CLAUDE_DIR/skills/$(basename "$f")"
 done
 
-# Commands
+# Commands (installed as skills — Claude Code unified commands into skills/)
 for f in "$SOURCE_DIR"/commands/*.md; do
   [[ -f "$f" ]] || continue
-  copy_file "$f" "$CLAUDE_DIR/commands/$(basename "$f")"
+  copy_file "$f" "$CLAUDE_DIR/skills/$(basename "$f")"
 done
 
 # Hooks
