@@ -1,4 +1,8 @@
-# /catchup
+---
+name: catchup
+description: "Resume context from last session."
+disable-model-invocation: true
+---
 
 Resume context from last session.
 

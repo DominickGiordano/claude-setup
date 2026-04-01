@@ -1,4 +1,8 @@
-# /board
+---
+name: board
+description: "Fetch the current state of the project's kanban board. Shows what's active, what's next, and what's blocked."
+disable-model-invocation: true
+---
 
 Fetch the current state of the project's kanban board. Shows what's active, what's next, and what's blocked.
 

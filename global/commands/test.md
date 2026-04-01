@@ -1,4 +1,8 @@
-# /test
+---
+name: test
+description: "Run the project's test suite, diagnose failures, and fix what you can."
+disable-model-invocation: true
+---
 
 Run the project's test suite, diagnose failures, and fix what you can.
 

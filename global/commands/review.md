@@ -1,4 +1,8 @@
-# /review
+---
+name: review
+description: "Review all changed code, clean up issues, and auto-fix where possible."
+disable-model-invocation: true
+---
 
 Review all changed code, clean up issues, and auto-fix where possible.
 

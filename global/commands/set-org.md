@@ -1,4 +1,8 @@
-# /set-org
+---
+name: set-org
+description: "Set the org conventions for this project. Copies the right org rules file to `.claude/rules/org.md`."
+disable-model-invocation: true
+---
 
 Set the org conventions for this project. Copies the right org rules file to `.claude/rules/org.md`.
 

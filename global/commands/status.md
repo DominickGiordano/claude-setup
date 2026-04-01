@@ -1,4 +1,8 @@
-# /status
+---
+name: status
+description: "Show the current state of all features in this project."
+disable-model-invocation: true
+---
 
 Show the current state of all features in this project.
 

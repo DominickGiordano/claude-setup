@@ -1,4 +1,8 @@
-# /compound
+---
+name: compound
+description: "Capture a pattern, gotcha, or design decision from the current session into a reusable solution doc."
+disable-model-invocation: true
+---
 
 Capture a pattern, gotcha, or design decision from the current session into a reusable solution doc.
 

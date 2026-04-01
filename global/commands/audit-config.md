@@ -1,4 +1,8 @@
-# /audit-config
+---
+name: audit-config
+description: "Check the health of this project's Claude configuration. Flag issues, suggest improvements."
+disable-model-invocation: true
+---
 
 Check the health of this project's Claude configuration. Flag issues, suggest improvements.
 

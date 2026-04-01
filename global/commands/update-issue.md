@@ -1,4 +1,8 @@
-# /update-issue
+---
+name: update-issue
+description: "Update a GitHub issue — add comments, change labels, close, or move on the project board."
+disable-model-invocation: true
+---
 
 Update a GitHub issue — add comments, change labels, close, or move on the project board.
 

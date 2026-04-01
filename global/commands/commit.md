@@ -1,4 +1,8 @@
-# /commit
+---
+name: commit
+description: "Analyze all changed files, stage them, and create a well-formatted commit. Do NOT push."
+disable-model-invocation: true
+---
 
 Analyze all changed files, stage them, and create a well-formatted commit. Do NOT push.
 

@@ -1,4 +1,8 @@
-# /execute
+---
+name: execute
+description: "Use the executor agent to act on a plan doc."
+disable-model-invocation: true
+---
 
 Use the executor agent to act on a plan doc.
 

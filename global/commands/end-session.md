@@ -1,4 +1,8 @@
-# /end-session
+---
+name: end-session
+description: "Use the memory-updater agent to summarize this session."
+disable-model-invocation: true
+---
 
 Use the memory-updater agent to summarize this session.
 

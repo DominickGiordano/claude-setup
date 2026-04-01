@@ -1,4 +1,8 @@
-# /setup
+---
+name: setup
+description: "Walk me through setting up Claude Code for this project step by step."
+disable-model-invocation: true
+---
 
 Walk me through setting up Claude Code for this project step by step.
 

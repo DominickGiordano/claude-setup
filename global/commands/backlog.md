@@ -1,4 +1,8 @@
-# /backlog
+---
+name: backlog
+description: "Create a GitHub issue with subtasks and a branch. Optionally add to the project board."
+disable-model-invocation: true
+---
 
 Create a GitHub issue with subtasks and a branch. Optionally add to the project board.
 

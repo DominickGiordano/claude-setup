@@ -1,4 +1,8 @@
-# /fix
+---
+name: fix
+description: "Quick-fix pipeline for small changes that don't need brainstorm/plan. Use for bug fixes, small features, config changes, and anything under 30 minutes."
+disable-model-invocation: true
+---
 
 Quick-fix pipeline for small changes that don't need brainstorm/plan. Use for bug fixes, small features, config changes, and anything under 30 minutes.
 

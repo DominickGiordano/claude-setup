@@ -1,4 +1,8 @@
-# /work-issue
+---
+name: work-issue
+description: "Full dev cycle orchestrator. Takes a GitHub issue number, loads all context, plans the work, and closes the loop."
+disable-model-invocation: true
+---
 
 Full dev cycle orchestrator. Takes a GitHub issue number, loads all context, plans the work, and closes the loop.
 

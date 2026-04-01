@@ -1,4 +1,8 @@
-# /orchestrate
+---
+name: orchestrate
+description: "Use the orchestrator agent to decompose an epic plan into feature plan docs."
+disable-model-invocation: true
+---
 
 Use the orchestrator agent to decompose an epic plan into feature plan docs.
 

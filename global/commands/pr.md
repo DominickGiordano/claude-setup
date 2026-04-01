@@ -1,4 +1,8 @@
-# /pr
+---
+name: pr
+description: "Prepare a pull request for current changes."
+disable-model-invocation: true
+---
 
 Prepare a pull request for current changes.
 

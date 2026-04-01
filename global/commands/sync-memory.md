@@ -1,4 +1,8 @@
-# /sync-memory
+---
+name: sync-memory
+description: "Reconcile session memory with the actual project state. Use at session start when memory is stale or when `/end-session` was skipped."
+disable-model-invocation: true
+---
 
 Reconcile session memory with the actual project state. Use at session start when memory is stale or when `/end-session` was skipped.
 
