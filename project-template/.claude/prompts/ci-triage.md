@@ -10,6 +10,7 @@ DO NOT:
 - Create pull requests or commit code
 - Do deep codebase analysis (no reading file contents, no line numbers)
 - Read source files — just use Glob to confirm files exist
+- Post comments on the issue — the CI workflow posts your output automatically
 
 DO:
 1. Read the issue — understand what's being reported (bug, feature, question)
