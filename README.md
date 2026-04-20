@@ -7,8 +7,8 @@ Dominick's Claude Code configuration for Areté. Gives every dev a shared, consi
 ## What This Gives You
 
 - **Three workflows** — `/fix` for quick changes, brainstorm → plan → execute for features, orchestrate for epics.
-- **10 agents** — planner, executor, orchestrator, reviewer, compounder, debugger, and more. Each with a single job.
-- **17 skills** — Python/FastAPI, Elixir/Phoenix, Graph API, Docker/Traefik, Anthropic SDK, and more.
+- **14 agents** — planner, executor, orchestrator, reviewer, compounder, debugger, and more. Each with a single job.
+- **21 skills** — Python/FastAPI, Elixir/Phoenix, Graph API, Docker/Traefik, Anthropic SDK, and more.
 - **Persistent memory** — session logs, pattern docs, and plan history that survive between sessions.
 - **Project scaffolding** — `.claude/` and `docs/` structure ready to go in any repo.
 - **Reference docs** — commands, agents, workflows, and file structure documented in every project.
