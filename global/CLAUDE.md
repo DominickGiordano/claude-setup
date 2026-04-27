@@ -53,8 +53,20 @@ Rules:
 - Skip brainstorm only if approach is already decided
 - Skip plan only for tiny tasks (single file, no risk, < 30 min)
 - Never execute a plan with status `Draft` — flip to `Ready` first
-- Use `/compound` to capture patterns worth preserving across sessions
+- Ask the `compounder` agent to capture patterns worth preserving across sessions
 - Always run `/end-session` before closing
+
+## Issue lifecycle commands
+- `/issue bug <desc>` — file a bug
+- `/issue new <desc>` — file a feature/task
+- `/issue from-plan <feature>` — create issue from a plan doc
+- `/issue update <#-or-search>` — comment, label, close, or move on the board
+- `/work-issue <#>` — full dev cycle on an existing issue (creates branch off `base_branch`)
+
+## Status commands
+- `/status` — local feature plans + GitHub project board (if configured)
+- `/status --features` — local plans only
+- `/status --board [in-progress|blocked|todo]` — board view only
 
 ## Reference Docs
 - `@docs/reference/commands.md` — what each command does and when to use it

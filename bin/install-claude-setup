@@ -203,6 +203,23 @@ echo ""
 if [[ "$DRY_RUN" == "true" ]]; then
   echo "Dry run complete. No files were changed."
 else
+  # Write install manifest — used by the drift-warn hook to detect local additions
+  manifest_file="$CLAUDE_DIR/.installed-state"
+  {
+    echo "repo=$REPO_DIR"
+    echo "sha=$(git -C "$REPO_DIR" rev-parse HEAD 2>/dev/null || echo unknown)"
+    echo "installed_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    if [[ -d "$SOURCE_DIR/skills" ]]; then
+      echo "skills=$(cd "$SOURCE_DIR/skills" && ls *.md 2>/dev/null | sed 's/\.md$//' | tr '\n' ',' | sed 's/,$//')"
+    fi
+    if [[ -d "$SOURCE_DIR/commands" ]]; then
+      echo "commands=$(cd "$SOURCE_DIR/commands" && ls *.md 2>/dev/null | sed 's/\.md$//' | tr '\n' ',' | sed 's/,$//')"
+    fi
+    if [[ -d "$SOURCE_DIR/agents" ]]; then
+      echo "agents=$(cd "$SOURCE_DIR/agents" && ls *.md 2>/dev/null | sed 's/\.md$//' | tr '\n' ',' | sed 's/,$//')"
+    fi
+  } > "$manifest_file"
+
   echo "Global config installed to $CLAUDE_DIR"
   [[ "$FORCE" == "true" ]] && echo "Backups saved to $BACKUP_DIR"
 fi

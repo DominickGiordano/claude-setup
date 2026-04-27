@@ -17,11 +17,12 @@ This repo IS the source of truth for Dominick's global Claude Code config. Files
 - **Never overwrite by default.** All bin/ commands skip existing files; `--force` writes backups to `~/.claude/.backups/` first.
 - **`init-claude-setup` never overwrites `CLAUDE.md`** even with `--force`.
 - **Symlinks, not copies, for bin.** `setup.sh` symlinks to `~/.local/bin/` so edits are live.
-- **Drift detection.** `update-claude-setup` (read-only) scans arete projects for unique config; `--promote` copies it back into the repo.
+- **Drift detection — two layers.** `update-claude-setup` (read-only) scans arete projects for unique config; `--promote` copies it back. Separately, the `drift-warn.js` SessionStart hook compares `~/.claude/{skills,agents}` against the install manifest at `~/.claude/.installed-state` and warns on local-only files.
+- **Subcommand-style commands.** `/issue` and `/status` dispatch on the first arg (`/issue bug …`, `/status --board todo`). Pattern: keep related lifecycle ops under one slash command rather than fragmenting into siblings.
 - **This repo has no code deploys.** It's config. Changes land in `~/.claude/` only after `install-claude-setup --force` is run.
 
 ## Current drift to watch
-Installed `~/.claude/skills/` has 43 skills; repo's `global/skills/` has 21. Reconcile periodically with `update-claude-setup --promote` or the extras will never make it back.
+The `~/.claude/skills/` count is inflated by the v2.1 commands-as-skills migration — every command in `global/commands/` shows up as a skill directory under `~/.claude/skills/`, so a naive count comparison against `global/skills/` will always look wrong. The `drift-warn` hook handles the real check (skill/agent files present locally but not in the repo manifest); use that instead of comparing counts.
 
 ## Gotchas
 - macOS ships bash 3 — avoid `declare -A`, use temp files.

@@ -24,6 +24,14 @@
             "command": "echo 'Context was compacted. Re-read .claude/CLAUDE.md for project context. Run /catchup if session history feels thin.'"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/drift-warn.js"
+          }
+        ]
       }
     ],
     "Stop": [
