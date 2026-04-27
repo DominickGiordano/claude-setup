@@ -12,30 +12,29 @@ Full dev cycle orchestrator. Takes a GitHub issue number, loads all context, pla
 
 ### 1. Load Context
 - Fetch the GitHub issue with ALL comments: `gh issue view {number} --json title,body,labels,assignees,comments`
-- **Read ALL comments** — look for CI triage bot analysis with: type, priority, scope, branch name, files involved, recommended approach
-- Extract from triage comment: branch name, file list, recommended approach
-- If no triage comment exists, do your own quick assessment
+- **Read ALL comments** — look for CI triage bot analysis with: type, priority, scope, suggested branch name, files involved, recommended approach
+- Extract from triage comment: suggested branch name, file list, recommended approach
+- If no triage comment exists, do your own quick assessment and derive a branch name yourself
 - **Assign to current user** if not already assigned: `gh issue edit {number} --add-assignee "@me"`
 - **Backfill type label** if missing (`bug`, `enhancement`, or `documentation`): classify from the issue content and add via `gh issue edit {number} --add-label {type}`
 - Show the user a summary: issue title, type, priority, triage findings, recommended approach
 
 ### 2. Checkout & Rebase
 - Read `base_branch` from Project Config (default: `develop`, fallback `main`)
+- Determine `{branch}` name: use the suggested branch from the triage comment if present, otherwise derive `{type}/{number}-{short-desc}` from the issue.
 
-**The branch already exists on origin** — the triage bot creates it. Use the branch name from the GitHub issue / triage comment. Do NOT create a new branch unless you've confirmed none exists.
+**`/work-issue` is responsible for creating the branch.** The triage bot only suggests a name. Branch creation happens here, off `base_branch`, right before work starts.
 
 1. **Fetch latest**: `git fetch origin`
-2. **Checkout the existing remote branch with tracking**:
-   ```
-   git checkout {branch} --track origin/{branch}
-   ```
-   - If that fails because a local branch already exists: `git checkout {branch} && git branch -u origin/{branch}`
-   - Only if NO branch exists anywhere (local or remote): `git checkout -b {type}/{number}-{short-desc} origin/{base_branch}`
-3. **Update base branch**: `git checkout {base_branch} && git pull origin {base_branch}`
-4. **Rebase feature branch on top of base**: `git checkout {branch} && git rebase {base_branch}`
+2. **Update base branch**: `git checkout {base_branch} && git pull origin {base_branch}`
+3. **Create or resume the feature branch**:
+   - **If the branch already exists on origin** (resuming work): `git checkout {branch} --track origin/{branch}`
+     - If a local branch already exists: `git checkout {branch} && git branch -u origin/{branch}`
+   - **If neither local nor remote exists** (new work — the common case): `git checkout -b {branch} {base_branch}`
+4. **Rebase onto base** (only if branch already had commits): `git rebase {base_branch}`
 5. If rebase conflicts occur, stop and ask the user — do NOT force through
 
-> **Common mistake:** Do NOT use `git checkout -b {branch} origin/{branch}` — this creates a new local branch that doesn't track the remote. Use `--track` to set up tracking correctly.
+> **Common mistake:** Do NOT use `git checkout -b {branch} origin/{branch}` to track a remote — this creates a new local branch that doesn't track. Use `--track` instead.
 
 ### 3. Post Work Plan to Issue
 

@@ -7,7 +7,7 @@ on:
     types: [created]
 
 permissions:
-  contents: write
+  contents: read
   issues: write
   id-token: write
 
@@ -69,7 +69,7 @@ jobs:
             echo "1. Analyze and produce your triage report"
             echo "2. Add labels with: gh issue edit ${ISSUE_NUM} --add-label <label>"
             echo "3. Estimate difficulty points (Fibonacci: 1,2,3,5,8,13) based on scope and complexity"
-            echo "4. Create a branch off the base branch (read from Project Config in CLAUDE.md)"
+            echo "4. Suggest a branch name in the report (do NOT create the branch — /work-issue creates it)"
             echo "5. Add to GitHub Project board if configured (just item-add, skip status/estimate)"
           } > /tmp/triage-prompt.txt
 
