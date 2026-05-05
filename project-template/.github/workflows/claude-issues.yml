@@ -70,7 +70,6 @@ jobs:
             echo "2. Add labels with: gh issue edit ${ISSUE_NUM} --add-label <label>"
             echo "3. Estimate difficulty points (Fibonacci: 1,2,3,5,8,13) based on scope and complexity"
             echo "4. Suggest a branch name in the report (do NOT create the branch — /work-issue creates it)"
-            echo "5. Add to GitHub Project board if configured (just item-add, skip status/estimate)"
           } > /tmp/triage-prompt.txt
 
           echo "::group::Triage prompt"
@@ -89,13 +88,17 @@ jobs:
           echo "Claude version: $(claude --version)"
           echo "Starting triage for issue #${{ steps.issue.outputs.number }}..."
 
-          claude -p "$(cat /tmp/triage-prompt.txt)" \
+          # Pipe via stdin instead of "$(cat ...)" — substituting the file
+          # content as a positional arg trips Linux ARG_MAX on large issue
+          # bodies. Same fix as pr-close-issues.yml.
+          claude \
             --print \
             --model claude-sonnet-4-6 \
             --system-prompt-file .claude/prompts/ci-triage.md \
             --max-turns 20 \
             --permission-mode bypassPermissions \
             --verbose \
+            < /tmp/triage-prompt.txt \
             2>/tmp/triage-stderr.log \
             > /tmp/triage-output.md
 
