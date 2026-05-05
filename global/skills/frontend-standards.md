@@ -42,6 +42,19 @@ New project: establish design tokens first, commit to git.
 - CSS variables for design tokens -- no hardcoded hex in components
 - 8px grid for spacing -- no magic pixel values
 
+**Tailwind v3 vs v4 -- check `package.json` before writing config**
+- v4 has **no `tailwind.config.js`** -- config lives in `app.css` via `@import "tailwindcss"` + `@source` directives
+- v4 import shape (Phoenix/phx.new projects):
+  ```css
+  @import "tailwindcss" source(none);
+  @source "../css";
+  @source "../js";
+  @source "../../lib/my_app_web";
+  ```
+- Never use `@apply` in v4 raw CSS -- write Tailwind components manually
+- v3 still uses `tailwind.config.js` + `content: [...]` -- don't mix the two
+- shadcn/ui generators may emit v3-shaped config -- adapt to v4 if the project is v4
+
 **Typography**
 - Clear hierarchy: Display > Heading > Body > Caption (visibly different)
 - Body line-height 1.5-1.6 | Heading 1.1-1.2
