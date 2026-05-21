@@ -32,6 +32,13 @@
 - Explicit error handling — no silent failures
 - No commented-out code in commits
 
+## Reuse Before Adding
+- Before writing a new helper, component, util, hook, or context function, grep the codebase first — 30 seconds searching beats 5 minutes writing
+- If similar exists: import or extend it. Two parallel implementations of the same thing is bloat
+- If shape is close but wrong: refactor the existing one to fit both callers
+- Applies to docs, configs, fixtures, scripts, types — not just runtime code
+- Distinct from "three similar lines is better than premature abstraction" — that's about CREATING new abstractions; this is about USING existing ones
+
 ## Response Defaults
 - Short bullets for lists, prose for explanations
 - Always propose a plan before writing code
