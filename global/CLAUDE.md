@@ -63,6 +63,23 @@ Rules:
 - Ask the `compounder` agent to capture patterns worth preserving across sessions
 - Always run `/end-session` before closing
 
+## Verification Before Pushing
+- For UI / rendering / state-machine / template changes: run `/verify` (or walk the flow in a browser) BEFORE pushing. State "verified in browser" or "did not verify — only unit tests" explicitly in the PR description.
+- Green `mix precommit` / `pnpm test` is necessary, NOT sufficient. Unit tests don't catch UX regressions, content duplication, lock-cascade bugs, or contract drift.
+- For content/template changes: render the final output — a YAML diff is not what users will see.
+- For state-machine changes (status enums, lock reasons, phase states): manually trace every reader of the field. Tests rarely cover all reader paths.
+
+## Root-Cause Investigations
+- When fixing a bug whose cause is unknown: if your FIRST PR doesn't resolve it, STOP. Do not ship a second guess.
+- Before the second attempt: get diagnostic data — run the project's diagnostic tooling, write a self-contained query, or add a Logger statement on the silent failure path and wait for it to fire.
+- "Three different attempted fixes shipped without log evidence" is a red flag. Surface it to the user and ask for diagnostic input.
+- Use the `pre-impl-audit` skill for any contract-touching change. Skip it for small `/fix` work.
+
+## Diagnostic Commands
+- Queries must be self-contained — no `<placeholder>` for IDs the query can find itself.
+- If you need "the most recent X" or "a row matching email Y," write the lookup INTO the query.
+- If a placeholder is genuinely unavoidable, mark it `# REPLACE: <description>` so the user knows what to fill.
+
 ## Issue lifecycle commands
 - `/issue bug <desc>` — file a bug
 - `/issue new <desc>` — file a feature/task
@@ -112,3 +129,6 @@ Rules:
 - Do NOT skip `/end-session`. Session memory is how you stay effective across sessions.
 - Do NOT put ephemeral state (current focus, branch lists, deploy checklists) in CLAUDE.md. Use memory files instead.
 - Do NOT duplicate CLAUDE.md content in MEMORY.md. Memory is for non-obvious context; CLAUDE.md is for rules.
+- Do NOT ship a PR that touches UI / state machines / content templates without manual verification. Green tests are not a feature working.
+- Do NOT bulk find-replace without grepping every consumer first. The `pre-impl-audit` skill exists for this — use it.
+- Do NOT ship a second root-cause fix without diagnostic data from the first failure. Stop and instrument instead.
