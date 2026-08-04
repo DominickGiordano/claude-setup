@@ -1,5 +1,34 @@
 # Root-Cause Investigations
 
+## First: is the fix actually live?
+
+When a bug is still happening after a fix, **check merge and deploy state before
+saying anything about why.** Never offer "the PR probably hasn't merged yet", "it
+may not be deployed", or "give it a few minutes" as an explanation — that is a
+guess that reads as an answer, and it stalls the investigation while the real
+cause sits unexamined.
+
+Verify, in this order:
+
+```bash
+gh pr view <n> --json number,state,mergedAt,mergeCommit,baseRefName,headRefName
+git fetch --quiet origin && git branch -r --contains <merge-sha>   # which branches have it
+gh run list --branch <base-branch> --limit 5                       # did the deploy run, did it pass
+```
+
+Then say which it is:
+
+- **Not merged** → say so with the PR state, and stop guessing about behaviour.
+- **Merged but deploy failed or hasn't run** → name the failing run. That's the answer.
+- **Merged AND deployed AND the bug persists** → the fix was WRONG. Say that plainly.
+  Do not wait, do not re-explain the original theory, and do not ship a second guess.
+  Go get diagnostic data (below).
+
+"Still broken" plus "merged and deployed" is evidence about the fix, not about the
+deploy. Treat it that way.
+
+## Then: don't guess twice
+
 - When fixing a bug whose cause is unknown: if your FIRST PR doesn't resolve it,
   STOP. Do not ship a second guess.
 - Before the second attempt: get diagnostic data — run the project's diagnostic

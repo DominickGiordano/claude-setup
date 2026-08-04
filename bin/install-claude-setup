@@ -23,6 +23,9 @@ DRY_RUN=false
 UNLINK=false
 SKIP_PROJECTS=false
 BACKUP_STAMP="$(date +%Y%m%d-%H%M%S)"
+# Set while syncing a project so backup_path() can route backups to that
+# project's .claude/.backups/ instead of scattering them next to each file.
+CURRENT_PROJECT=""
 BACKUP_DIR="$CLAUDE_DIR/.backups/$BACKUP_STAMP"
 
 usage() {
@@ -59,15 +62,23 @@ done
 log() { echo "  $1"; }
 
 # Files under ~/.claude back up to ~/.claude/.backups/<stamp>/<rel>.
-# Files in a registered project back up inside that project, so a project's
-# history stays with the project rather than landing in the home config.
+# Files in a registered project back up to that project's .claude/.backups/, so a
+# project's history stays with the project instead of landing in the home config.
+#
+# Every project backup MUST funnel into that one directory. An earlier version fell
+# back to "<dir-of-file>/.backups/", which scattered untracked .backups/ folders
+# through tracked directories like docs/reference/ and .github/workflows/.
 backup_path() {
   local target="$1"
   case "$target" in
-    "$CLAUDE_DIR"/*) echo "$BACKUP_DIR/${target#$CLAUDE_DIR/}" ;;
-    */.claude/*)     echo "${target%%/.claude/*}/.claude/.backups/$BACKUP_STAMP/${target#*/.claude/}" ;;
-    *)               echo "${target%/*}/.backups/$BACKUP_STAMP/${target##*/}" ;;
+    "$CLAUDE_DIR"/*) echo "$BACKUP_DIR/${target#$CLAUDE_DIR/}"; return ;;
   esac
+  if [[ -n "$CURRENT_PROJECT" ]] && [[ "$target" == "$CURRENT_PROJECT"/* ]]; then
+    echo "$CURRENT_PROJECT/.claude/.backups/$BACKUP_STAMP/${target#$CURRENT_PROJECT/}"
+    return
+  fi
+  # Last resort for a path we can't attribute: keep it out of the working tree.
+  echo "$CLAUDE_DIR/.backups/$BACKUP_STAMP/orphan/${target##*/}"
 }
 
 backup() {
@@ -271,6 +282,7 @@ elif [[ -f "$PROJECTS_FILE" ]] && [[ "$FORCE" == "true" ]]; then
       continue
     fi
 
+    CURRENT_PROJECT="${project_dir%/}"
     echo "  Project: $(basename "$project_dir") ($project_dir)"
 
     mkdir -p "$project_dir"/.claude/prompts
