@@ -285,32 +285,27 @@ elif [[ -f "$PROJECTS_FILE" ]] && [[ "$FORCE" == "true" ]]; then
     CURRENT_PROJECT="${project_dir%/}"
     echo "  Project: $(basename "$project_dir") ($project_dir)"
 
+    # Only files that genuinely CANNOT be global get copied into a repo.
+    #
+    # Everything else moved to the global config, because copying it per-repo is
+    # what let the same doc go four months stale in three repos simultaneously:
+    #   docs/reference/*, docs/workflows/*  -> the `arete-workflow` skill
+    #   .claude/rules/{backend,frontend,infra,ios}.md -> ~/.claude/rules/ (path-scoped)
+    # Those reach every repo through ~/.claude with no per-repo file at all.
+    #
+    # org.md is never synced — it is org/project-specific by definition.
     mkdir -p "$project_dir"/.claude/prompts
     mkdir -p "$project_dir"/.github/workflows
-    mkdir -p "$project_dir"/docs/reference "$project_dir"/docs/workflows
-    mkdir -p "$project_dir"/.claude/rules
 
+    # GitHub Actions must live in the repo to run at all.
     for f in "$TEMPLATE_DIR"/.github/workflows/*.yml; do
       [[ -f "$f" ]] || continue
       copy_file "$f" "$project_dir/.github/workflows/$(basename "$f")"
     done
+    # Read by the CI workflow from inside the repo, so it has to be local.
     for f in "$TEMPLATE_DIR"/.claude/prompts/*.md; do
       [[ -f "$f" ]] || continue
       copy_file "$f" "$project_dir/.claude/prompts/$(basename "$f")"
-    done
-    for f in "$TEMPLATE_DIR"/docs/reference/*.md; do
-      [[ -f "$f" ]] || continue
-      copy_file "$f" "$project_dir/docs/reference/$(basename "$f")"
-    done
-    for f in "$TEMPLATE_DIR"/docs/workflows/*.md; do
-      [[ -f "$f" ]] || continue
-      copy_file "$f" "$project_dir/docs/workflows/$(basename "$f")"
-    done
-    # SKIP org.md — that's project/org-specific
-    for f in "$TEMPLATE_DIR"/.claude/rules/*.md; do
-      [[ -f "$f" ]] || continue
-      [[ "$(basename "$f")" == "org.md" ]] && continue
-      copy_file "$f" "$project_dir/.claude/rules/$(basename "$f")"
     done
 
     echo ""

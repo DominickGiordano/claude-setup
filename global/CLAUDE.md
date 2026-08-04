@@ -78,8 +78,9 @@ Rules:
 - Always run `/end-session` before closing
 
 `/issue` and `/status` dispatch on their first arg — `/issue bug|new|from-plan|update`,
-`/status [--features|--board <filter>]`. Full walkthroughs:
-`@docs/workflows/feature-workflow.md`, `@docs/workflows/epic-workflow.md`, `@docs/workflows/research-workflow.md`
+`/status [--features|--board <filter>]`. For full walkthroughs, which command to reach for,
+or where artifacts land, use the `arete-workflow` skill — it loads on demand, so it costs
+nothing until asked. `claude-setup help` prints the live command list.
 
 ## Memory
 - Session learnings go in `.claude/memory/session-log.md` in the active project

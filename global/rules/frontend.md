@@ -1,10 +1,15 @@
 ---
 paths:
+  - "**/*.tsx"
+  - "**/*.jsx"
+  - "**/*.css"
   - "src/components/**"
   - "src/app/**"
-  - "*.tsx"
-  - "*.jsx"
+  - "app/**"
+  - "components/**"
+  - "**/tailwind.config.*"
 ---
+
 # Frontend Rules
 
 - Check `frontend-standards` skill for full frontend conventions

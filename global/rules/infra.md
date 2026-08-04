@@ -1,10 +1,15 @@
 ---
 paths:
+  - "**/*.tf"
+  - "**/*.tfvars"
+  - "**/*.hcl"
   - "terraform/**"
   - "infra/**"
   - ".github/workflows/**"
-  - "*.tf"
+  - "**/Dockerfile*"
+  - "**/docker-compose*.y*ml"
 ---
+
 # Infra Rules
 
 - Check `infra-standards` skill for full IaC conventions

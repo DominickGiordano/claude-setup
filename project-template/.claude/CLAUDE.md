@@ -4,7 +4,8 @@
      Delete this comment block when done. -->
 
 > This file is loaded into every Claude session. Keep it lean and accurate.
-> For how the workflow system works, see `docs/reference/`.
+> For how the workflow system works, ask Claude — the global `arete-workflow` skill
+> covers commands, agents and pipelines. Nothing about it is per-repo.
 
 ## What This Is
 <!-- What does this project do? Who uses it? One paragraph. -->
@@ -32,7 +33,6 @@
      The docs/ structure is standard across all projects:
        docs/features/    — one folder per feature (RESEARCH, BRAINSTORM, PLAN, EXECUTION_LOG)
        docs/solutions/   — reusable patterns from the compounder agent
-       docs/reference/   — system docs (commands, agents, workflows, file structure)
      Delete these comments and list your project-specific paths. -->
 
 ## Project Config

@@ -101,6 +101,45 @@ Listed as "consider". Rejected — the executor edits the repo you are sitting i
 
 Verified after final install: 40/40 skills, 14/14 agents, 4/4 rules symlinked; 0 real dirs; 0 dangling; no content drift; `settings.json` valid with `Stop` gone; all hooks and bin scripts parse; guard suite 19/19.
 
+---
+
+## Phase 6 — Stop copying global content into repos ✅ (added 2026-08-04, after review)
+
+Dom pushed back on PRs being opened in other repos: *"these are global settings aren't
+they"*. Correct, and it exposed a design flaw worth more than the PRs were worth.
+
+**What went wrong.** The global config was already live in every repo via `~/.claude`
+symlinks — no per-repo work was needed or done for it. But `install-claude-setup --force`
+*also* copies `project-template/` files into each registered repo, and I extended
+"deploy it to my repos" into opening PRs for those copies in three repos. Opening a PR in
+a shared repo is outward-facing (review requests, team notifications) and needed explicit
+sign-off, not inference. Both PRs (`contact-intelligence#80`, `areteos#1498`) were closed,
+all three pushed branches deleted, and all three repos restored to their pre-session state.
+
+**The actual flaw.** `docs/reference/*` documents the *global* command set, and
+`.claude/rules/{backend,frontend,infra,ios}.md` are generic domain conventions. Copying
+them into N repos is precisely why the same doc sat four months stale in three repos
+simultaneously — and fixing that by hand costs one PR per repo, forever.
+
+**Fix.**
+
+- The four domain rules moved to `global/rules/` as path-scoped rules. They reach every
+  repo through `~/.claude/rules/` with no per-repo file.
+- The seven reference/workflow docs became one on-demand global skill,
+  `global/skills/arete-workflow/` (`SKILL.md` + 7 `references/`). Loads only when asked,
+  so it costs nothing at launch.
+- `install-claude-setup` and `init-claude-setup` no longer sync or scaffold
+  `docs/reference/`, `docs/workflows/`, or the domain rules.
+
+**Bug fixed in passing.** Those domain rules used bare globs — `*.py`, `*.tsx`, `*.tf`,
+`*.swift`. Per the rules spec a bare `*.md` matches only project-root files, so those
+globs had been near-dead. Rewritten as `**/*.py` etc., plus the layouts we actually use
+(`lib/` for Elixir, `app/` for Next.js, `apps/*/` for monorepos).
+
+**Per-repo surface: 14 files → 3**, and each remaining one genuinely cannot be global:
+`.github/workflows/*.yml` (Actions must live in the repo), `.claude/prompts/ci-triage.md`
+(read by that workflow locally), plus each repo's own `CLAUDE.md` and `rules/org.md`.
+
 ## Follow-ups
 
 - Phase 5 (plugin packaging) remains the gate for autonomous/scheduled runs — `~/.claude/skills/` is invisible to Cowork, cloud sessions and routines.

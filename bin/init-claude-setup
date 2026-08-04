@@ -184,7 +184,7 @@ fi
 if [[ "$DRY_RUN" == "false" ]]; then
   mkdir -p "$PROJECT_DIR"/.claude/{agents,skills,commands,rules,memory,prompts}
   mkdir -p "$PROJECT_DIR"/.github/workflows
-  mkdir -p "$PROJECT_DIR"/docs/{workflows,features,solutions,reference}
+  mkdir -p "$PROJECT_DIR"/docs/{features,solutions}
 fi
 
 # Copy template files
@@ -198,19 +198,15 @@ copy_if_missing "$TEMPLATE_DIR/.claude/settings.json"          "$PROJECT_DIR/.cl
 copy_if_missing "$TEMPLATE_DIR/.claude/memory/session-log.md"  "$PROJECT_DIR/.claude/memory/session-log.md"
 copy_if_missing "$TEMPLATE_DIR/docs/architecture.md"           "$PROJECT_DIR/docs/architecture.md"
 
-# Copy workflow docs if they exist in the template
-for f in "$TEMPLATE_DIR"/docs/workflows/*.md; do
-  [[ -f "$f" ]] || continue
-  copy_if_missing "$f" "$PROJECT_DIR/docs/workflows/$(basename "$f")"
-done
+# Workflow and reference docs are NOT scaffolded per-project any more. They
+# describe the global system, so they live in the `arete-workflow` global skill
+# and reach every repo through ~/.claude. Copying them per-repo is what let the
+# same doc go four months stale in three repos at once.
+# Ask Claude "how does the workflow work" or run `claude-setup help`.
 
-# Copy reference docs
-for f in "$TEMPLATE_DIR"/docs/reference/*.md; do
-  [[ -f "$f" ]] || continue
-  copy_if_missing "$f" "$PROJECT_DIR/docs/reference/$(basename "$f")"
-done
-
-# Copy path-scoped rules (domain rules: frontend, backend, infra, ios)
+# Project rules. Only org.md ships in the template now — the domain rules
+# (backend, frontend, infra, ios) are global path-scoped rules in ~/.claude/rules/
+# and already apply here. Add project-specific rules to .claude/rules/ as needed.
 for f in "$TEMPLATE_DIR"/.claude/rules/*.md; do
   [[ -f "$f" ]] || continue
   copy_if_missing "$f" "$PROJECT_DIR/.claude/rules/$(basename "$f")"

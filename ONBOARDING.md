@@ -186,7 +186,7 @@ You don't invoke agents directly — they're triggered by commands. But knowing 
 
 **Key rule**: The executor won't touch a plan with status `Draft`. Review the plan, then set status to `Ready`.
 
-For full details, check `docs/reference/agents.md` in any initialized project.
+For full details, ask Claude — the global `arete-workflow` skill has the complete agent reference.
 
 ---
 
@@ -210,7 +210,7 @@ The five you'll use daily:
 | `/work-issue [#]` | Full dev cycle on a GitHub issue |
 | `/end-session` | Log session, update Current Focus, clear dirty-files |
 
-For decision trees on which pipeline to use, see `docs/reference/workflows.md` in any initialized project.
+For decision trees on which pipeline to use, ask Claude — the global `arete-workflow` skill has them.
 
 ---
 
@@ -274,8 +274,8 @@ Never commit `.env` files. Never hardcode secrets. Infisical only.
 
 ## Getting Help
 
-- **Reference docs**: `docs/reference/` in any initialized project (commands, agents, workflows, file structure)
-- **Workflow docs**: `docs/workflows/` in any initialized project (step-by-step with examples)
+- **Reference docs**: the global `arete-workflow` skill (commands, agents, workflows, file structure) — one copy, applies everywhere
+- **Workflow walkthroughs**: same skill, `references/*-workflow.md` (step-by-step with examples)
 - **Skills reference**: `~/.claude/skills/` (global) and `.claude/skills/` (project)
 - **Ask Claude**: "how does X work in this setup" — it can read the reference and workflow docs
 - **Improve the system**: Use the meta-agent to create new agents/skills, then open a PR

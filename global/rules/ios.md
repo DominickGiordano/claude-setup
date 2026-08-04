@@ -1,10 +1,12 @@
 ---
 paths:
-  - "*.swift"
+  - "**/*.swift"
   - "Sources/**"
-  - "*.xcodeproj/**"
-  - "*.xcworkspace/**"
+  - "**/*.xcodeproj/**"
+  - "**/*.xcworkspace/**"
+  - "**/Package.swift"
 ---
+
 # iOS Rules
 
 - Check `ios-standards` skill for full Swift/SwiftUI conventions

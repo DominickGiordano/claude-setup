@@ -1,11 +1,16 @@
 ---
 paths:
+  - "**/*.py"
+  - "**/*.ex"
+  - "**/*.exs"
   - "src/api/**"
   - "src/lib/**"
   - "src/services/**"
-  - "*.py"
-  - "*.ex"
+  - "lib/**"
+  - "app/api/**"
+  - "apps/*/lib/**"
 ---
+
 # Backend Rules
 
 - Check `backend-standards` skill for full backend conventions

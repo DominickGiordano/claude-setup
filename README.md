@@ -152,7 +152,7 @@ docs/features/my-feature/
 └── EXECUTION_LOG.md        ← from /execute (auto-generated audit trail)
 ```
 
-Full walkthroughs with examples: `docs/workflows/feature-workflow.md` and `docs/workflows/epic-workflow.md`
+Full walkthroughs with examples: the global `arete-workflow` skill (ask Claude, or read `global/skills/arete-workflow/references/`)
 
 ---
 
@@ -296,7 +296,7 @@ Claude has no memory between sessions by default. This setup adds it:
 
 **Add skills as patterns emerge.** Every time you find yourself explaining the same pattern to Claude, that's a skill. Use the meta-agent to create it.
 
-**Reference docs are your wiki.** Every project gets `docs/reference/` with commands, agents, workflows, and file structure docs. `@`-reference them when needed.
+**Reference docs are global, not per-repo.** The `arete-workflow` skill carries commands, agents, workflows and file structure — one copy in `global/`, loaded on demand. Per-repo copies are what let them go stale in three repos at once.
 
 ---
 
