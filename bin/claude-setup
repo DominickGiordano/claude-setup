@@ -72,7 +72,7 @@ list_entries() {
     [[ "$manual" == "$want" ]] || continue
     # `|| true` matters: under `set -e` a failing command substitution in an
     # assignment aborts the script, and most entries have no argument-hint.
-    hint="$(grep -m1 '^argument-hint:' "$f" | sed 's/^argument-hint:[[:space:]]*//' || true)"
+    hint="$(grep -m1 '^argument-hint:' "$f" | sed -e 's/^argument-hint:[[:space:]]*//' -e 's/^"//' -e 's/"$//' || true)"
     if [[ "$want" == "user" ]]; then
       printf "  ${GREEN}%-26s${RESET} %s\n" "/$name $hint" "$(first_desc_line "$f")"
     else
