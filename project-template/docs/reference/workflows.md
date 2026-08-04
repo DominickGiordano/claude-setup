@@ -66,7 +66,7 @@ Everything lands in one folder. Plan requires `Ready` status before execution.
 ## Mid-Session Commands
 
 - `/status` — see all features and their status
-- `/review` — review changed code
-- `/test` — run tests
-- `/compound [pattern]` — capture a lesson worth keeping
+- `/code-review` — review the working diff
+- `/verify` — drive the app to confirm a change works (required for UI/template changes)
 - `/commit` — stage and commit
+- Ask the `compounder` agent to capture a lesson worth keeping

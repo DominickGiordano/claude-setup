@@ -27,7 +27,7 @@ your-project/
 │   │   └── my-epic/
 │   │       └── PLAN.md        ← epic plan, then /orchestrate creates sub-folders
 │   │
-│   ├── solutions/             ← reusable patterns from /compound
+│   ├── solutions/             ← reusable patterns from the compounder agent
 │   │   ├── auth/
 │   │   ├── deployment/
 │   │   └── ...
@@ -90,7 +90,7 @@ Lifecycle of a feature folder:
 
 ### `docs/solutions/` — Reusable patterns
 
-Created by `/compound`. Organized by category (auth, deployment, testing, etc.). These are lessons learned that prevent repeating mistakes.
+Written by the `compounder` agent. Organized by category (auth, deployment, testing, etc.). These are lessons learned that prevent repeating mistakes.
 
 ### `docs/reference/` — How the system works
 

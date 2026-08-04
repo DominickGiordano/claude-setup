@@ -1,6 +1,9 @@
 # Command Reference
 
-Quick reference for all available slash commands. Run any command by typing it in Claude Code.
+Quick reference for the slash commands available in Claude Code.
+
+For the authoritative, always-current list run `claude-setup help` — it is generated from
+the installed skills, so it never goes stale. This page is the annotated version.
 
 ## Workflow Commands
 
@@ -13,30 +16,47 @@ Quick reference for all available slash commands. Run any command by typing it i
 | `/execute [feature]` | Act on a plan — shows preview, waits for approval | When plan status is Ready |
 | `/orchestrate [epic]` | Break epic plan into sub-feature folders | Multi-feature work with dependencies |
 
+## Issue Lifecycle Commands
+
+| Command | What it does | When to use |
+|---------|-------------|-------------|
+| `/work-issue [#]` | Full dev cycle on a GitHub issue: branch → analyze → code → test → commit → update issue | Picking up an existing issue |
+| `/issue bug [desc]` | File a bug | Something is broken |
+| `/issue new [desc]` | File a feature or task | Work that should be tracked |
+| `/issue from-plan [feature]` | Create an issue from a plan doc | After `/plan`, to get it on the board |
+| `/issue update [# or search]` | Comment, label, close, or move on the board | Keeping the board honest |
+
 ## Code Quality Commands
 
 | Command | What it does | When to use |
 |---------|-------------|-------------|
-| `/review` | Review changed code for quality, security, correctness | After implementing, before committing |
-| `/test` | Detect and run test suite, diagnose failures | After changes to verify nothing broke |
+| `/code-review` | Review the working diff for quality, security, correctness | After implementing, before committing |
+| `/verify` | Drive the running app to confirm a change actually works | Required for UI / template / state-machine changes |
 | `/commit` | Stage and commit with structured message | When changes are ready to commit |
-| `/pr` | Create a pull request with description | When branch is ready for review |
+| `/pr` | Prepare a pull request description off `base_branch` | When branch is ready for review |
+
+Running the test suite has no dedicated command — say "run the tests and fix what's
+broken", or let `/fix` and `/work-issue` do it as part of their pipeline.
 
 ## Knowledge & Memory Commands
 
 | Command | What it does | When to use |
 |---------|-------------|-------------|
-| `/compound [pattern]` | Capture a pattern into a reusable solution doc | After discovering a recurring issue or tricky pattern |
-| `/status` | Dashboard of all features and their status | Anytime — see what's in flight |
+| `/status` | Local feature plans, plus the project board with `--board` | Anytime — see what's in flight |
 | `/catchup` | Resume context from last session | Start of session |
-| `/sync-memory` | Backfill session log from git history | When /end-session was skipped |
+| `/sync-memory` | Backfill session log from git history | When `/end-session` was skipped |
 | `/end-session` | Log session summary, update Current Focus | End of every session |
+| `/audit-config` | Health check: CLAUDE.md size, stale content, missing rules | Periodically, or when config feels bloated |
+
+To capture a reusable pattern, ask the `compounder` agent ("compound this pattern") —
+it writes to `docs/solutions/`. There is no `/compound` command.
 
 ## Setup Commands
 
 | Command | What it does | When to use |
 |---------|-------------|-------------|
-| `/setup` | Interactive project setup for new devs | First time working in a project |
+| `/init` | Let Claude draft this project's CLAUDE.md from the codebase | First time working in a project |
+| `/set-org [name]` | Copy org conventions into `.claude/rules/org.md` | New project, or org conventions changed |
 
 ## Decision Tree
 

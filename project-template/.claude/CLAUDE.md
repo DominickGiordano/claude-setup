@@ -1,6 +1,6 @@
 # [Project Name]
 
-<!-- FIRST SESSION: Run /setup to fill this in interactively, or do it manually.
+<!-- FIRST SESSION: Run /init to draft this from the codebase, then edit. 
      Delete this comment block when done. -->
 
 > This file is loaded into every Claude session. Keep it lean and accurate.
@@ -31,14 +31,14 @@
 <!-- Which directories and files matter? Only list non-obvious ones.
      The docs/ structure is standard across all projects:
        docs/features/    — one folder per feature (RESEARCH, BRAINSTORM, PLAN, EXECUTION_LOG)
-       docs/solutions/   — reusable patterns from /compound
+       docs/solutions/   — reusable patterns from the compounder agent
        docs/reference/   — system docs (commands, agents, workflows, file structure)
      Delete these comments and list your project-specific paths. -->
 
 ## Project Config
-<!-- Integration config for global commands (/work-issue, /board, /backlog, /update-issue).
+<!-- Integration config for global commands (/work-issue, /issue, /status, /pr).
      Fill in the values relevant to your project. Delete unused sections.
-     Run /setup to fill this in interactively. -->
+     Fill this in by hand — Claude reads it to adapt global commands to this repo. -->
 ```yaml
 pm_tool: none                            # github-projects | none
 base_branch: main                        # branch all work starts from
