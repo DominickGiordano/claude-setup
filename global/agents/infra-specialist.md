@@ -12,6 +12,7 @@ skills:
   - docker-deploy
   - infisical
   - env-config
+color: green
 ---
 
 You are an infrastructure specialist. You handle all IaC, cloud resources,

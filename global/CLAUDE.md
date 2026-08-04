@@ -46,13 +46,27 @@
 - If something seems off, say so
 - **All doc output as `.md` files** — never paste long docs into chat, write to file
 
+## Branch Flow — HARD RULE, EVERY REPO, NO EXCEPTIONS
+**`feature → develop → main`. ALWAYS.**
+- **NEVER open a PR with `--base main`.** Never push to `main`, never merge to `main`.
+  `main` is release + production deploy on every push. A PR merged to `main` ships to prod.
+- **ALWAYS `--base develop`.** Branch off `origin/develop`, PR into `develop`.
+- **Before creating ANY PR**, confirm the target: `git ls-remote --heads origin develop`.
+  If `develop` exists, it is the base. Full stop.
+- **`git remote show origin` "HEAD branch" is NOT the PR target.** It reports the repo's
+  default branch (usually `main`) and says nothing about the branch flow. Using it as the
+  base is exactly how a fix got merged straight to `main` and auto-deployed to production.
+- `main` only ever receives changes via a develop→main promotion, done by a human.
+- If a repo genuinely has no `develop`, stop and ask before targeting `main`.
+- The `guard-bash` PreToolUse hook enforces this. If it blocks you, it is right — fix the
+  base, don't work around it.
+
 ## Standard Workflow
 
 **Quick fix** (bug fix, small change, < 30 min): `/fix [description]`
 **Single feature**: `/research` (optional) → `/brainstorm` → `/plan` → `/execute` → `/end-session`
 **Epic (multi-feature)**: `/brainstorm` → `/plan [epic]` → `/orchestrate` → `/plan` each stub → `/execute` each → `/end-session`
-
-Full walkthroughs: `@docs/workflows/feature-workflow.md`, `@docs/workflows/epic-workflow.md`, `@docs/workflows/research-workflow.md`
+**On an existing issue**: `/work-issue <#>` (branches off `base_branch`)
 
 Rules:
 - Use `/fix` for small, well-understood changes — it skips brainstorm/plan
@@ -63,72 +77,16 @@ Rules:
 - Ask the `compounder` agent to capture patterns worth preserving across sessions
 - Always run `/end-session` before closing
 
-## Verification Before Pushing
-- For UI / rendering / state-machine / template changes: run `/verify` (or walk the flow in a browser) BEFORE pushing. State "verified in browser" or "did not verify — only unit tests" explicitly in the PR description.
-- Green `mix precommit` / `pnpm test` is necessary, NOT sufficient. Unit tests don't catch UX regressions, content duplication, lock-cascade bugs, or contract drift.
-- For content/template changes: render the final output — a YAML diff is not what users will see.
-- For state-machine changes (status enums, lock reasons, phase states): manually trace every reader of the field. Tests rarely cover all reader paths.
-
-## Root-Cause Investigations
-- When fixing a bug whose cause is unknown: if your FIRST PR doesn't resolve it, STOP. Do not ship a second guess.
-- Before the second attempt: get diagnostic data — run the project's diagnostic tooling, write a self-contained query, or add a Logger statement on the silent failure path and wait for it to fire.
-- "Three different attempted fixes shipped without log evidence" is a red flag. Surface it to the user and ask for diagnostic input.
-- Use the `pre-impl-audit` skill for any contract-touching change. Skip it for small `/fix` work.
-
-## Diagnostic Commands
-- Queries must be self-contained — no `<placeholder>` for IDs the query can find itself.
-- If you need "the most recent X" or "a row matching email Y," write the lookup INTO the query.
-- If a placeholder is genuinely unavoidable, mark it `# REPLACE: <description>` so the user knows what to fill.
-
-## Issue lifecycle commands
-- `/issue bug <desc>` — file a bug
-- `/issue new <desc>` — file a feature/task
-- `/issue from-plan <feature>` — create issue from a plan doc
-- `/issue update <#-or-search>` — comment, label, close, or move on the board
-- `/work-issue <#>` — full dev cycle on an existing issue (creates branch off `base_branch`)
-
-## Status commands
-- `/status` — local feature plans + GitHub project board (if configured)
-- `/status --features` — local plans only
-- `/status --board [in-progress|blocked|todo]` — board view only
-
-## Reference Docs
-- `@docs/reference/commands.md` — what each command does and when to use it
-- `@docs/reference/agents.md` — what each agent does and how they're invoked
-- `@docs/reference/workflows.md` — decision tree for picking the right pipeline
-- `@docs/reference/file-structure.md` — where everything lives and why
+`/issue` and `/status` dispatch on their first arg — `/issue bug|new|from-plan|update`,
+`/status [--features|--board <filter>]`. Full walkthroughs:
+`@docs/workflows/feature-workflow.md`, `@docs/workflows/epic-workflow.md`, `@docs/workflows/research-workflow.md`
 
 ## Memory
-- Session learnings should be appended to `.claude/memory/session-log.md` in the active project
+- Session learnings go in `.claude/memory/session-log.md` in the active project
 - Use the `#` shortcut to add quick memory items during sessions
 - Run `/end-session` before closing to summarize and commit learnings
 
-## Git Commit Rules
-- Do NOT add "Co-Authored-By" lines to commit messages — ever, in any project
-- Do NOT tag issue numbers (`#N`) in commits unless the commit is directly related to that issue
-- Branch naming convention: `<type>/<issue-number>-<short-desc>` (e.g. `feature/42-coverage-calc`)
-- Commit messages use conventional prefix + issue number: `feat: #42 add coverage calculation`
-- Prefixes: `feat:` (or `feature:`), `fix:`, `chore:`, `docs:`, `refactor:`, `test:` — required for changelog generation
-- Both `feat:` and `feature:` are accepted as feature prefixes
-- PRs must use `Closes #N` in description — branch name alone does NOT auto-link
-
-## Issue Discipline
-- Post a work plan comment before starting implementation
-- Post a completion comment when done — include what changed, root cause, discovered issues
-- Move the card on the project board to match actual status
-- Create new issues for problems discovered during debugging — don't let them get lost
-
-## Lessons
-- Do NOT put project-specific rules in `~/.claude/CLAUDE.md`. Move them to the project's `.claude/CLAUDE.md` or `.claude/rules/`.
-- Do NOT let project `CLAUDE.md` exceed 200 lines. Split path-specific content to `.claude/rules/` files with `paths:` frontmatter.
-- Do NOT restate linter/formatter rules in CLAUDE.md. Reference the config file instead.
-- Do NOT write long explanatory paragraphs in CLAUDE.md. Use short imperative bullets.
-- Do NOT make changes to multiple files without presenting the full plan first.
-- Do NOT update `CLAUDE.md` without reading it first and checking the line count after.
-- Do NOT create speculative commands, skills, or agents. Build them when the need is confirmed.
-- Do NOT skip `/end-session`. Session memory is how you stay effective across sessions.
-- Do NOT put ephemeral state (current focus, branch lists, deploy checklists) in CLAUDE.md. Use memory files instead.
-- Do NOT duplicate CLAUDE.md content in MEMORY.md. Memory is for non-obvious context; CLAUDE.md is for rules.
-- Do NOT ship a PR that touches UI / state machines / content templates without manual verification. Green tests are not a feature working.
-- Do NOT bulk find-replace without grepping every consumer first. The `pre-impl-audit` skill exists for this — use it.
-- Do NOT ship a second root-cause fix without diagnostic data from the first failure. Stop and instrument instead.
+## Rules loaded separately
+`~/.claude/rules/` carries the detail so it isn't in context every session:
+`root-cause.md` and `git-discipline.md` always load; `verification.md` loads on UI and
+template files; `config-hygiene.md` loads when editing Claude config itself.

@@ -8,7 +8,8 @@ Dominick's Claude Code configuration for Areté. Gives every dev a shared, consi
 
 - **Three workflows** — `/fix` for quick changes, brainstorm → plan → execute for features, orchestrate for epics.
 - **14 agents** — planner, executor, orchestrator, reviewer, compounder, debugger, and more. Each with a single job.
-- **21 skills** — Python/FastAPI, Elixir/Phoenix, Graph API, Docker/Traefik, Anthropic SDK, and more.
+- **24 skills + 16 slash commands** — Python/FastAPI, Elixir/Phoenix/Ash, Graph API, Docker/Traefik, Anthropic SDK, and more.
+- **One copy on disk** — `~/.claude/` symlinks into this repo, so edits are live and config can't drift.
 - **Persistent memory** — session logs, pattern docs, and plan history that survive between sessions.
 - **Project scaffolding** — `.claude/` and `docs/` structure ready to go in any repo.
 - **Reference docs** — commands, agents, workflows, and file structure documented in every project.
@@ -40,22 +41,28 @@ install-claude-setup
 cd /your/project
 init-claude-setup
 claude
-/setup                        # interactive project setup
+/init                         # let Claude draft the project CLAUDE.md, then edit it
 ```
 
 ### Two commands — know the difference
 
 | Command | What it does | Scope | Safe to re-run? |
 |---------|-------------|-------|-----------------|
-| `install-claude-setup` | Syncs global config (`~/.claude/`) — commands, agents, skills, CLAUDE.md | Your machine | Yes, `--force` backs up before overwriting |
+| `install-claude-setup` | Symlinks global config into `~/.claude/` — skills, agents, rules, hooks; copies CLAUDE.md + settings.json | Your machine | Yes, it's idempotent. `--force` backs up before replacing real files |
 | `init-claude-setup` | Scaffolds `.claude/` + `docs/` in the **current project** | One repo | Yes, skips existing files. **Never overwrites CLAUDE.md** (even with `--force`) |
 
 **Updating global config** (after pulling new changes):
 ```bash
 cd /path/to/claude-setup
 git pull
-install-claude-setup --force  # updates ~/.claude/ with backups in ~/.claude/.backups/
+# Nothing else to do — skills, agents, rules and hooks are symlinked, so the pull
+# IS the update and it's live in your next message.
+# Only re-run install when a brand-new skill/agent file appeared, or to prune
+# links left dangling by a rename:
+install-claude-setup --skip-projects
 ```
+
+`--force` additionally copies `project-template/` files into every repo listed in `~/.claude/.projects`. Add `--skip-projects` when you only mean to touch `~/.claude`.
 
 **Scaffolding a new project**:
 ```bash
@@ -79,7 +86,7 @@ Options: `--force` (overwrite with backups, except CLAUDE.md), `--dry-run` (prev
 
 ## Project Config
 
-Global commands (`/work-issue`, `/board`, `/backlog`, `/update-issue`) adapt to each project by reading a `## Project Config` block in the project's `.claude/CLAUDE.md`:
+Global commands (`/work-issue`, `/issue`, `/status`, `/pr`) adapt to each project by reading a `## Project Config` block in the project's `.claude/CLAUDE.md`:
 
 ```yaml
 pm_tool: github-projects                 # github-projects | none
@@ -159,7 +166,7 @@ Full walkthroughs with examples: `docs/workflows/feature-workflow.md` and `docs/
 | `orchestrator` | Breaks epic into feature folders, shows dependency order | `/orchestrate [epic]` |
 | `executor` | Delegation preview → execute → logs to `EXECUTION_LOG.md` | `/execute [feature]` |
 | `code-reviewer` | Reviews for quality, security, correctness | Auto after execute, or explicit |
-| `compounder` | Captures patterns into reusable solution docs | `/compound [pattern]` |
+| `compounder` | Captures patterns into reusable solution docs | "compound this pattern" |
 | `debugger` | Root cause analysis | "debug this" / "why is X broken" |
 | `memory-updater` | Session log + updates `CLAUDE.md` Current Focus | `/end-session` |
 | `meta-agent` | Builds new agents from a description | "use meta-agent to create..." |
@@ -170,6 +177,14 @@ Full walkthroughs with examples: `docs/workflows/feature-workflow.md` and `docs/
 
 ## Slash Commands
 
+For the live list — generated from `global/skills/`, so it can't go stale:
+
+```bash
+claude-setup help
+```
+
+The ones that carry the workflow:
+
 | Command | Does |
 |---------|------|
 | `/fix [description]` | Quick fix — implement, test, review in one shot |
@@ -178,25 +193,16 @@ Full walkthroughs with examples: `docs/workflows/feature-workflow.md` and `docs/
 | `/plan [topic]` | Write plan doc → `docs/features/[feature]/PLAN.md` |
 | `/orchestrate [epic]` | Break epic into feature folders |
 | `/execute [feature]` | Delegation preview → execute with audit trail |
-| `/compound [pattern]` | Document a pattern → `docs/solutions/[category]/[name].md` |
-| `/review` | Review + auto-fix changed code |
-| `/test` | Run tests, diagnose + fix failures |
-| `/commit` | Stage + commit with structured message |
-| `/pr` | Prepare pull request description |
-| `/status` | Show all features with status + docs present |
-| `/sync-memory` | Backfill session-log from git when /end-session was skipped |
-| `/catchup` | Resume context from last session |
-| `/end-session` | Log session, update Current Focus, clear dirty-files |
-| `/work-issue [#]` | Full dev cycle: load issue → checkout → analyze → code → test → commit → update issue |
-| `/board` | View project board (GitHub Projects or Issues fallback) |
-| `/backlog [desc]` | Create GitHub issue + branch + add to project board |
-| `/update-issue [# or name]` | Update issue: post comment, change status, move on board |
-| `/audit-config` | Health check — CLAUDE.md size, stale content, missing rules |
-| `/setup` | Interactive project setup for new devs |
+| `/work-issue [#]` | Full dev cycle: issue → branch → analyze → code → test → commit → update issue |
+| `/issue bug\|new\|from-plan\|update` | GitHub issue lifecycle |
+| `/status [--features\|--board]` | Local feature plans and/or the project board |
+| `/commit`, `/pr` | Structured commit; PR description off `base_branch` |
+| `/catchup`, `/end-session`, `/sync-memory` | Session continuity |
+| `/audit-config`, `/set-org` | Config health check; org conventions |
 
 ## Skills
 
-Skills are reference docs Claude uses when writing code. They're not auto-loaded — Claude invokes them when relevant, or you can `@`-reference explicitly.
+Skills are reference docs Claude loads on demand — automatically when the task matches their `description`/`paths`, or explicitly via `/skill-name`. Only the short description list is in context at all times; bodies and `references/` cost nothing until a skill fires.
 
 | Skill | Use for |
 |-------|---------|
@@ -262,7 +268,7 @@ Claude has no memory between sessions by default. This setup adds it:
     │       ├── BRAINSTORM.md   ← from /brainstorm (optional)
     │       ├── PLAN.md         ← from /plan
     │       └── EXECUTION_LOG.md ← from /execute (auto-generated)
-    ├── solutions/              ← pattern docs from /compound (institutional memory)
+    ├── solutions/              ← pattern docs from the compounder agent (institutional memory)
     │   └── [category]/[pattern].md
     ├── reference/              ← system docs (commands, agents, workflows, file structure)
     │   ├── commands.md

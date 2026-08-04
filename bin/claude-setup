@@ -15,43 +15,70 @@ YELLOW="\033[33m"
 RESET="\033[0m"
 
 show_reference() {
+  # Generated from the repo, never hardcoded — a hardcoded list is how this
+  # screen ended up advertising eight commands that had been retired.
   echo ""
   echo -e "${BOLD}${CYAN}Slash Commands${RESET} ${DIM}(run inside a Claude Code session)${RESET}"
   echo ""
-  echo -e "  ${BOLD}Workflow${RESET}"
-  echo -e "  ${GREEN}/work-issue [#]${RESET}               Full dev cycle: issue → analyze → code → commit → PM"
-  echo -e "  ${GREEN}/fix [desc]${RESET}                   Quick fix — implement, test, review in one shot"
-  echo -e "  ${GREEN}/research [topic]${RESET}             Tech investigation → RESEARCH.md"
-  echo -e "  ${GREEN}/brainstorm [topic]${RESET}           Explore options → BRAINSTORM.md"
-  echo -e "  ${GREEN}/plan [topic]${RESET}                 Write implementation plan → PLAN.md"
-  echo -e "  ${GREEN}/execute [feature]${RESET}            Run a plan with delegation preview"
-  echo -e "  ${GREEN}/orchestrate [epic]${RESET}           Break epic into feature sub-plans"
+  list_entries "$REPO_DIR/global/skills" "user"
   echo ""
-  echo -e "  ${BOLD}Review & Ship${RESET}"
-  echo -e "  ${GREEN}/review${RESET}                       Review + auto-fix changed code"
-  echo -e "  ${GREEN}/test${RESET}                         Run tests, diagnose + fix failures"
-  echo -e "  ${GREEN}/commit${RESET}                       Stage + commit with structured message"
-  echo -e "  ${GREEN}/pr${RESET}                           Prepare pull request description"
+  echo -e "${BOLD}${CYAN}Skills${RESET} ${DIM}(Claude loads these automatically)${RESET}"
   echo ""
-  echo -e "  ${BOLD}Project Management${RESET}"
-  echo -e "  ${GREEN}/board${RESET}                        View PM kanban (Notion or GitHub)"
-  echo -e "  ${GREEN}/backlog-notion [desc]${RESET}        Create Notion task + GitHub issue + branch"
-  echo -e "  ${GREEN}/update-notion-task [name]${RESET}    Update PM task: subtasks, status, notes"
+  list_entries "$REPO_DIR/global/skills" "model"
   echo ""
-  echo -e "  ${BOLD}Config & Memory${RESET}"
-  echo -e "  ${GREEN}/setup${RESET}                        Interactive project setup"
-  echo -e "  ${GREEN}/set-org [name]${RESET}               Set org conventions (arete, xomware, custom)"
-  echo -e "  ${GREEN}/audit-config${RESET}                 Health check — CLAUDE.md size, stale content"
-  echo -e "  ${GREEN}/catchup${RESET}                      Resume context from last session"
-  echo -e "  ${GREEN}/end-session${RESET}                  Log session, clear dirty-files"
-  echo -e "  ${GREEN}/compound [pattern]${RESET}           Capture reusable pattern → docs/solutions/"
+  echo -e "${BOLD}${CYAN}Agents${RESET} ${DIM}(delegated to, or @-mentioned directly)${RESET}"
   echo ""
-  echo -e "  ${BOLD}Domain Specialists${RESET} ${DIM}(invoked by /work-issue or directly)${RESET}"
-  echo -e "  ${GREEN}frontend-specialist${RESET}           React/Next.js/Tailwind/shadcn"
-  echo -e "  ${GREEN}backend-specialist${RESET}            Python/TS/Elixir APIs"
-  echo -e "  ${GREEN}infra-specialist${RESET}              Terraform/AWS/CI-CD"
-  echo -e "  ${GREEN}ios-specialist${RESET}                Swift/SwiftUI/Xcode"
+  for f in "$REPO_DIR"/global/agents/*.md; do
+    [[ -f "$f" ]] || continue
+    printf "  ${GREEN}%-22s${RESET} %s\n" "$(basename "$f" .md)" "$(first_desc_line "$f")"
+  done
   echo ""
+}
+
+# Pull the first line of the frontmatter `description:` (handles `>` block form).
+first_desc_line() {
+  awk '
+    /^---[[:space:]]*$/ { n++; next }
+    n == 1 && /^description:/ {
+      sub(/^description:[[:space:]]*>?-?[[:space:]]*/, "")
+      if (length($0)) { gsub(/^"|"$/, ""); print; exit }
+      getline; sub(/^[[:space:]]+/, ""); gsub(/^"|"$/, ""); print; exit
+    }
+  ' "$1" | cut -c1-64
+}
+
+# Locate a skill body in either layout: <name>/SKILL.md or the legacy <name>.md
+skill_files() {
+  local dir="$1"
+  ls -1 "$dir"/*/SKILL.md 2>/dev/null || true
+  ls -1 "$dir"/*.md 2>/dev/null || true
+}
+
+# $2 = "user" for /-invocable entries (disable-model-invocation: true),
+#      "model" for everything Claude picks up on its own.
+list_entries() {
+  local dir="$1" want="$2" f name hint manual
+  while IFS= read -r f; do
+    [[ -n "$f" ]] || continue
+    case "$f" in
+      */SKILL.md) name="$(basename "$(dirname "$f")")" ;;
+      *)          name="$(basename "$f" .md)" ;;
+    esac
+    if grep -qiE '^disable-model-invocation:[[:space:]]*(true|yes|on|1)' "$f"; then
+      manual="user"
+    else
+      manual="model"
+    fi
+    [[ "$manual" == "$want" ]] || continue
+    # `|| true` matters: under `set -e` a failing command substitution in an
+    # assignment aborts the script, and most entries have no argument-hint.
+    hint="$(grep -m1 '^argument-hint:' "$f" | sed 's/^argument-hint:[[:space:]]*//' || true)"
+    if [[ "$want" == "user" ]]; then
+      printf "  ${GREEN}%-26s${RESET} %s\n" "/$name $hint" "$(first_desc_line "$f")"
+    else
+      printf "  ${GREEN}%-26s${RESET} %s\n" "$name" "$(first_desc_line "$f")"
+    fi
+  done < <(skill_files "$dir" | sort -u)
 }
 
 show_status() {
@@ -59,12 +86,24 @@ show_status() {
   echo -e "${BOLD}${CYAN}Current Status${RESET}"
   echo ""
 
-  # Global config
+  # Global config. Count SKILL.md entrypoints, not every .md — skills now carry
+  # references/ subfiles, and ~/.claude/commands/ has been empty since commands
+  # became skills, so counting it always reported 0.
   if [[ -d "$HOME/.claude/skills" ]]; then
-    skill_count=$(find "$HOME/.claude/skills" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
-    agent_count=$(find "$HOME/.claude/agents" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
-    cmd_count=$(find "$HOME/.claude/commands" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
-    echo -e "  ${GREEN}Global config:${RESET}  $skill_count skills, $agent_count agents, $cmd_count commands"
+    skill_count=$(ls -d "$HOME"/.claude/skills/*/SKILL.md 2>/dev/null | wc -l | tr -d ' ')
+    agent_count=$(ls -1 "$HOME"/.claude/agents/*.md 2>/dev/null | wc -l | tr -d ' ')
+    user_rule_count=$(ls -1 "$HOME"/.claude/rules/*.md 2>/dev/null | wc -l | tr -d ' ')
+    linked=$(find "$HOME/.claude/skills" -maxdepth 1 -type l 2>/dev/null | wc -l | tr -d ' ')
+    dangling=$(find "$HOME/.claude/skills" "$HOME/.claude/agents" -maxdepth 1 -type l ! -exec test -e {} \; -print 2>/dev/null | wc -l | tr -d ' ')
+    echo -e "  ${GREEN}Global config:${RESET}  $skill_count skills, $agent_count agents, $user_rule_count user rules"
+    if [[ "$linked" -gt 0 ]]; then
+      echo -e "  ${GREEN}Link mode:${RESET}      symlinked to repo ($linked live) — edits apply immediately"
+    else
+      echo -e "  ${YELLOW}Link mode:${RESET}      copies. Run: install-claude-setup --force  (converts to symlinks)"
+    fi
+    if [[ "$dangling" -gt 0 ]]; then
+      echo -e "  ${YELLOW}Dangling:${RESET}       $dangling broken symlink(s). Run: install-claude-setup --force"
+    fi
   else
     echo -e "  ${YELLOW}Global config:${RESET}  Not installed. Run: claude-setup install"
   fi

@@ -12,6 +12,7 @@ skills:
   - ts-component
   - api-route
   - nodejs
+color: green
 ---
 
 You are a frontend specialist. You handle all UI implementation with

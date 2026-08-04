@@ -48,7 +48,11 @@ async function main() {
     hookData.tool_input?.path ||
     null;
 
-  if (filePath) {
+  // Skip the memory dir itself — otherwise the log and dirty-files show up as
+  // "files changed this session" and drown out the real edits.
+  const isMemoryFile = filePath && filePath.includes(`${path.sep}.claude${path.sep}memory${path.sep}`);
+
+  if (filePath && !isMemoryFile) {
     fs.appendFileSync(dirtyFile, filePath + "\n", "utf8");
   }
 

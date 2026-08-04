@@ -58,13 +58,17 @@ source ~/.zshrc
 install-claude-setup
 ```
 
-This copies everything in `global/` to `~/.claude/`:
-- **10 agents** — brainstorm, planner, executor, orchestrator, researcher, code-reviewer, compounder, debugger, memory-updater, meta-agent
-- **18 commands** — `/fix`, `/brainstorm`, `/plan`, `/execute`, `/compound`, `/review`, `/test`, `/commit`, `/pr`, and more
-- **17 skills** — Python/FastAPI, Elixir/Phoenix, Graph API, Docker/Traefik, Anthropic SDK, and more
-- **3 hooks** — file change tracking, session-end logging, bash safety guard
+This **symlinks** `global/` into `~/.claude/`:
+- **14 agents** — researcher, brainstorm, planner, orchestrator, executor, dispatcher, code-reviewer, compounder, debugger, memory-updater, meta-agent, and three domain specialists
+- **16 slash commands** — `/fix`, `/plan`, `/execute`, `/work-issue`, `/issue`, `/status`, `/commit`, `/pr`, and more
+- **24 skills** — Python/FastAPI, Elixir/Phoenix/Ash, Graph API, Docker/Traefik, Anthropic SDK, and more
+- **3 hooks** — file change tracking, session-end logging, bash + PR-base safety guard
 
-Options: `--force` (overwrite existing files, with backups), `--dry-run` (preview without changing anything).
+Run `claude-setup help` any time for the live list — it reads the files, so it can't go stale.
+
+Because these are symlinks, editing anything in `global/` takes effect immediately in your next message. There is one copy on disk, so the repo and `~/.claude/` can't drift apart.
+
+Options: `--force` (replace an existing copy-based install, with backups), `--dry-run` (preview), `--skip-projects` (don't also push templates into repos listed in `~/.claude/.projects`), `--unlink` (go back to plain copies).
 
 ---
 
@@ -105,7 +109,7 @@ This creates:
     └── dirty-files          ← changed files buffer (gitignored)
 docs/
 ├── features/                ← one folder per feature (RESEARCH, BRAINSTORM, PLAN, EXECUTION_LOG)
-├── solutions/               ← pattern docs from /compound
+├── solutions/               ← pattern docs from the compounder agent
 ├── reference/               ← system docs (commands, agents, workflows, file structure)
 ├── workflows/               ← workflow walkthroughs with examples
 └── architecture.md          ← system design doc
@@ -113,14 +117,16 @@ docs/
 
 **If your project has the old structure** (`docs/plans/`, `docs/spikes/`), init will auto-migrate files to `docs/features/` for you.
 
-Then start Claude Code and run the interactive setup:
+Then start Claude Code and let it draft the project context for you:
 
 ```bash
 claude
-/setup
+/init
 ```
 
-This walks you through filling in `.claude/CLAUDE.md` with your project's stack, key paths, and conventions. **This is the most important file** — it's what Claude reads at the start of every session.
+`/init` reads the codebase and proposes a `CLAUDE.md` with build commands, layout, and conventions it discovers. Edit it afterwards to add the things it can't infer — the `## Project Config` block (`base_branch`, `test_commands`, `pm_tool`) and any conventions that differ from tool defaults. **This is the most important file** — it's what Claude reads at the start of every session.
+
+Run `/audit-config` later to check its size and flag stale content.
 
 ---
 
@@ -172,8 +178,8 @@ You don't invoke agents directly — they're triggered by commands. But knowing 
 | `planner` | Writes plan docs | `/plan [topic]` |
 | `orchestrator` | Breaks epics into feature folders | `/orchestrate [epic]` |
 | `executor` | Builds from plan docs, logs to `EXECUTION_LOG.md` | `/execute [feature]` |
-| `code-reviewer` | Quality, security, correctness review | Auto after execute, or `/review` |
-| `compounder` | Captures patterns into solution docs | `/compound [pattern]` |
+| `code-reviewer` | Quality, security, correctness review | Auto after execute, or `/code-review` |
+| `compounder` | Captures patterns into solution docs | "compound this pattern" |
 | `debugger` | Root cause analysis | "debug this" / "why is X broken" |
 | `memory-updater` | Session summaries + updates CLAUDE.md | `/end-session` |
 | `meta-agent` | Creates new agents | "create an agent that does X" |
@@ -186,39 +192,25 @@ For full details, check `docs/reference/agents.md` in any initialized project.
 
 ## Step 8 — All Commands Reference
 
-### Workflow Commands
+Don't memorise a list — print the live one. It's generated from `global/skills/`, so it always matches what's actually installed:
+
+```bash
+claude-setup help
+```
+
+That prints three sections: slash commands you invoke, skills Claude loads on its own, and the agents it delegates to.
+
+The five you'll use daily:
+
 | Command | Does |
 |---------|------|
 | `/fix [description]` | Quick fix — implement, test, review in one shot |
-| `/research [topic]` | Research doc → `docs/features/[topic]/RESEARCH.md` |
-| `/brainstorm [topic]` | Explore options → `docs/features/[topic]/BRAINSTORM.md` |
 | `/plan [topic]` | Write plan doc → `docs/features/[feature]/PLAN.md` |
-| `/orchestrate [epic]` | Break epic into feature folders |
 | `/execute [feature]` | Delegation preview → execute with audit trail |
-
-### Code Quality Commands
-| Command | Does |
-|---------|------|
-| `/review` | Review + auto-fix changed code |
-| `/test` | Run tests, diagnose + fix failures |
-| `/commit` | Stage + commit with structured message |
-| `/pr` | Create pull request with description |
-
-### Knowledge & Memory Commands
-| Command | Does |
-|---------|------|
-| `/compound [pattern]` | Document a pattern → `docs/solutions/[category]/[name].md` |
-| `/catchup` | Resume context from last session |
-| `/sync-memory` | Backfill session-log from git (when /end-session was skipped) |
-| `/status` | Show all features with status + docs present |
+| `/work-issue [#]` | Full dev cycle on a GitHub issue |
 | `/end-session` | Log session, update Current Focus, clear dirty-files |
 
-### Setup Commands
-| Command | Does |
-|---------|------|
-| `/setup` | Interactive project setup for new devs |
-
-For the full reference with decision trees, check `docs/reference/commands.md` in any initialized project.
+For decision trees on which pipeline to use, see `docs/reference/workflows.md` in any initialized project.
 
 ---
 
@@ -232,8 +224,8 @@ Loads last session context — what was in flight, what's next. If it feels stal
 
 ### During session
 - Use `/fix`, `/plan`, `/execute` as needed
-- Run `/compound [description]` when you learn something worth preserving
-- Run `/review` before committing, `/test` to verify
+- Ask the `compounder` agent to capture anything worth preserving across sessions
+- Run `/code-review` before committing; run the project's test command to verify
 - Use `/commit` when ready to save progress
 - Run `/status` to see what's in flight across all features
 
@@ -294,9 +286,9 @@ Never commit `.env` files. Never hardcode secrets. Infisical only.
 
 After a few sessions you should have:
 - `docs/features/` with folders showing the full lifecycle of each piece of work
-- `docs/solutions/` with patterns captured via `/compound`
+- `docs/solutions/` with patterns captured by the compounder agent
 - `.claude/memory/session-log.md` with a running log of what was built
 - `.claude/CLAUDE.md` with an accurate "Current Focus" section
 - PRs with clear plan docs linked as context
 
-The system gets smarter as you use it. Add skills when you find yourself re-explaining patterns. Add agents when you see repeated workflows. Use `/compound` to capture patterns worth preserving. Use the meta-agent — it's what it's there for.
+The system gets smarter as you use it. Add skills when you find yourself re-explaining patterns. Add agents when you see repeated workflows. Ask the compounder agent to capture patterns worth preserving. Use the meta-agent — it's what it's there for.

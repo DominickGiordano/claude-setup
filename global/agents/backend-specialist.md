@@ -14,6 +14,7 @@ skills:
   - phoenix
   - database
   - error-handling
+color: green
 ---
 
 You are a backend specialist. You handle all service-layer implementation

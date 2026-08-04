@@ -4,6 +4,8 @@ description: Updates project memory files after a session. Reads dirty-files and
 tools: Read, Write, Edit, Glob
 model: sonnet
 memory: user
+color: pink
+effort: medium
 ---
 
 You are the Memory Updater. Your job is to make sure nothing useful gets lost between sessions.

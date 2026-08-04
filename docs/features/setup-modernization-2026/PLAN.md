@@ -1,8 +1,15 @@
 # Plan: Setup Modernization 2026
 
-**Status**: In Progress (Phase 1 done 2026-04-26; Phase 2 pending)
+**Status**: Closed — Phase 1 done 2026-04-26; **Phase 2 superseded, do NOT execute**
 **Created**: 2026-04-26
-**Last updated**: 2026-04-26
+**Last updated**: 2026-08-04
+
+> **Phase 2 below is obsolete.** See `docs/features/global-setup-overhaul-2026-08/`.
+> Two of its items are now actively counterproductive: splitting `python.md` into sibling
+> top-level skills (2.1) and merging cross-cutting skills (2.4) would inflate the skill
+> listing, which is the exact budget the Aug 2026 work shrank by 66%. The correct
+> mechanism is `references/` subfiles, and that has been applied. `arete-baseline` (2.3)
+> shipped as always-on files in `global/rules/` instead of as a skill.
 
 ## Summary
 Modernize the `claude-setup` repo against April 2026 best practices. Phase 1 is tactical: drift fix, retire 1:1 wrappers, slim `work-issue.md`, merge overlapping commands, retire `ios-specialist`. Phase 2 is structural: split bloated skills, extract `arete-baseline`, audit cross-cutting skills. Phased so Phase 1 can be lived-with for a few days before Phase 2 commits.

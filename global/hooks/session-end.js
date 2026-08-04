@@ -1,11 +1,19 @@
 #!/usr/bin/env node
 /**
  * session-end.js
- * Fires on Stop hook. Appends a timestamped session summary prompt
- * to the active project's memory log so learnings aren't lost.
+ * Fires on the SessionEnd hook — once, when the session actually terminates.
  *
- * Requires: Node.js >= 16. Exits 0 silently if unavailable.
- * Install: referenced in ~/.claude/settings.json Stop hook
+ * This used to be wired to `Stop`, which fires at the end of EVERY TURN. That is
+ * why the session log filled with stubs and why "run /end-session religiously"
+ * became a documented gotcha: the hook was firing dozens of times per session and
+ * the dedup guards below were load-bearing. On SessionEnd it fires once, so the
+ * guards are now just belt-and-braces.
+ *
+ * Writes a stub only when files were actually changed (dirty-files non-empty) and
+ * /end-session didn't already write a real entry.
+ *
+ * Requires Node.js >= 16. Exits 0 silently if unavailable.
+ * Install: referenced in ~/.claude/settings.json SessionEnd hook.
  */
 
 const [major] = process.versions.node.split(".").map(Number);
@@ -15,8 +23,11 @@ const fs = require("fs");
 const path = require("path");
 const readline = require("readline");
 
+// `clear` and `resume` continue the work rather than ending it, so a stub there
+// would interrupt a session that is still in progress.
+const SKIP_REASONS = new Set(["clear", "resume"]);
+
 async function main() {
-  // Read hook input from stdin
   let input = "";
   const rl = readline.createInterface({ input: process.stdin });
   for await (const line of rl) {
@@ -30,6 +41,10 @@ async function main() {
     process.exit(0); // non-blocking — don't break Claude if hook fails
   }
 
+  if (SKIP_REASONS.has(hookData.reason)) {
+    process.exit(0);
+  }
+
   const cwd = hookData.cwd || process.cwd();
   const memoryDir = path.join(cwd, ".claude", "memory");
   const logFile = path.join(memoryDir, "session-log.md");
@@ -39,52 +54,52 @@ async function main() {
     process.exit(0);
   }
 
+  // Nothing changed — a read-only session needs no stub.
+  const dirtyFile = path.join(memoryDir, "dirty-files");
+  const dirty = fs.existsSync(dirtyFile)
+    ? fs.readFileSync(dirtyFile, "utf8").trim()
+    : "";
+  if (!dirty) {
+    process.exit(0);
+  }
+
   if (!fs.existsSync(memoryDir)) {
     fs.mkdirSync(memoryDir, { recursive: true });
   }
 
-  // Check if /end-session already ran this session (wrote a real entry)
-  // by looking for a session entry with today's date that has actual content
-  // (not just the auto-captured stub). If found, skip the stub.
   const timestamp = new Date().toISOString().split("T")[0];
   const sessionId = hookData.session_id ? hookData.session_id.slice(0, 8) : "unknown";
 
   if (fs.existsSync(logFile)) {
     const existing = fs.readFileSync(logFile, "utf8");
-    // If there's already a real entry for today (has "### What was built"), skip stub
+    // /end-session already wrote a real entry for today — don't shadow it.
     const todayPattern = new RegExp(`## Session ${timestamp}[\\s\\S]*?### What was built`);
     if (todayPattern.test(existing)) {
-      console.log(JSON.stringify({ continue: true, suppressOutput: true }));
-      return;
+      process.exit(0);
     }
-    // If there's already a stub for this exact session ID, skip duplicate
     if (existing.includes(`(${sessionId})`)) {
-      console.log(JSON.stringify({ continue: true, suppressOutput: true }));
-      return;
+      process.exit(0);
     }
   }
 
-  // Only write a stub if dirty-files has content (something was actually changed)
-  const dirtyFile = path.join(memoryDir, "dirty-files");
-  const hasDirtyFiles = fs.existsSync(dirtyFile) && fs.readFileSync(dirtyFile, "utf8").trim().length > 0;
-
-  if (!hasDirtyFiles) {
-    // No files changed — skip stub entirely (read-only sessions don't need stubs)
-    console.log(JSON.stringify({ continue: true, suppressOutput: true }));
-    return;
-  }
+  const files = dirty.split("\n").filter(Boolean);
+  const unique = [...new Set(files)];
+  const shown = unique.slice(0, 15);
+  const more = unique.length - shown.length;
 
   const entry = `
 ---
 ## Session ${timestamp} (${sessionId})
-> Auto-captured on Stop. Run /sync-memory to backfill from git if /end-session was skipped.
+> Auto-captured on SessionEnd — /end-session was not run.
+> Run /sync-memory to backfill the details from git.
+
+### Files touched (${unique.length})
+${shown.map((f) => `- ${f}`).join("\n")}${more > 0 ? `\n- …and ${more} more` : ""}
 
 `;
 
   fs.appendFileSync(logFile, entry, "utf8");
-
-  // Output JSON to signal success without blocking
-  console.log(JSON.stringify({ continue: true, suppressOutput: true }));
+  process.exit(0);
 }
 
 main().catch(() => process.exit(0));

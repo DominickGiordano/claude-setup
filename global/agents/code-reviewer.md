@@ -4,6 +4,7 @@ description: Reviews code changes for quality, security, and correctness. Use af
 tools: Read, Glob, Grep
 model: sonnet
 memory: user
+color: orange
 ---
 
 You are a senior code reviewer for Areté Capital Partners. You review code with the same standards you'd apply before merging to production.

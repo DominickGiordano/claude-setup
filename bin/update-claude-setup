@@ -122,11 +122,19 @@ if [[ "$MODE" == "promote" ]]; then
   echo "=== Promote to global ==="
   echo ""
 
-  # Get unique type|name pairs
-  sort -t'|' -k1,2 -u "$FINDINGS_FILE" | while IFS='|' read -r type name first_project; do
+  if [[ ! -t 0 ]] && [[ ! -r /dev/tty ]]; then
+    echo "  --promote needs an interactive terminal. Re-run without a pipe."
+    exit 1
+  fi
+
+  # Get unique type|name pairs.
+  # Feed the loop by redirect, NOT a pipe: a piped `while read` makes the loop's
+  # stdin the pipe, so the confirmation `read` below would consume findings lines
+  # instead of waiting for a keypress and every item would be silently skipped.
+  # The prompt reads from /dev/tty explicitly for the same reason.
+  while IFS='|' read -r type name first_project; do
     src="$SCAN_DIR/$first_project/.claude/$type/$name"
     dst="$GLOBAL_DIR/$type/$name"
-    live_dst="$CLAUDE_DIR/$type/$name"
 
     if [[ ! -f "$src" ]]; then
       echo "  Source not found: $src"
@@ -138,20 +146,21 @@ if [[ "$MODE" == "promote" ]]; then
     head -20 "$src"
     echo "..."
     echo ""
-    read -p "  Promote to global? [y/N] " -n 1 -r
+    read -p "  Promote to global? [y/N] " -n 1 -r REPLY < /dev/tty
     echo ""
 
     if [[ $REPLY =~ ^[Yy]$ ]]; then
+      mkdir -p "$(dirname "$dst")"
       cp "$src" "$dst"
-      cp "$src" "$live_dst" 2>/dev/null || true
       echo "  Promoted: $dst"
     else
       echo "  Skipped."
     fi
-  done
+  done < <(sort -t'|' -k1,2 -u "$FINDINGS_FILE")
 
   echo ""
-  echo "Done. Run 'install-claude-setup' to sync global dir to ~/.claude/"
+  echo "Done. Promoted files live in the repo and are already live via symlink."
+  echo "Commit them, then run 'install-claude-setup' if any are brand new."
 else
   echo "Run with --promote to interactively copy these to global."
 fi

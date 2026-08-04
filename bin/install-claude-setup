@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
 # install-claude-setup
-# Installs global Claude Code config from the claude-setup repo to ~/.claude/
-# Safe by default — never overwrites existing files unless --force is passed.
-# With --force, creates timestamped backups before overwriting.
+# Links global Claude Code config from the claude-setup repo into ~/.claude/.
+#
+# Skills, agents, rules and hooks are SYMLINKED, not copied. There is exactly one
+# copy of each on disk — the one in this repo — so the repo and ~/.claude cannot
+# drift, and edits are live in the current session (Claude Code follows symlinks
+# and its file watcher picks up changes through them).
+#
+# CLAUDE.md and settings.json are COPIED on purpose: Claude Code and its /commands
+# write to those files, and a symlink would push those writes into the repo.
+#
+# Safe by default — never replaces an existing real file unless --force is passed.
+# With --force, creates timestamped backups first.
 
 set -euo pipefail
 
@@ -10,25 +19,38 @@ REPO_DIR="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
 SOURCE_DIR="$REPO_DIR/global"
 CLAUDE_DIR="$HOME/.claude"
 FORCE=false
-BACKUP_DIR="$CLAUDE_DIR/.backups/$(date +%Y%m%d-%H%M%S)"
+DRY_RUN=false
+UNLINK=false
+SKIP_PROJECTS=false
+BACKUP_STAMP="$(date +%Y%m%d-%H%M%S)"
+BACKUP_DIR="$CLAUDE_DIR/.backups/$BACKUP_STAMP"
 
 usage() {
-  echo "Usage: install-claude-setup [--force]"
-  echo ""
-  echo "Installs global Claude Code config to ~/.claude/"
-  echo ""
-  echo "Options:"
-  echo "  --force    Overwrite existing files (creates backups first)"
-  echo "  --dry-run  Show what would be done without doing it"
-  echo "  --help     Show this help"
-}
+  cat <<'EOF'
+Usage: install-claude-setup [--force] [--dry-run] [--unlink]
 
-DRY_RUN=false
+Links global Claude Code config into ~/.claude/ (skills, agents, rules, hooks as
+symlinks; CLAUDE.md and settings.json as copies).
+
+Options:
+  --force           Replace existing real files with links (creates backups first)
+  --dry-run         Show what would be done without doing it
+  --unlink          Reverse the migration: replace symlinks with plain copies
+  --skip-projects   Only touch ~/.claude; do not sync templates into the repos
+                    listed in ~/.claude/.projects
+  --help            Show this help
+
+Note: --force normally also copies project-template files into every repo listed
+in ~/.claude/.projects. Pass --skip-projects when you only mean to update ~/.claude.
+EOF
+}
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --force) FORCE=true; shift ;;
     --dry-run) DRY_RUN=true; shift ;;
+    --unlink) UNLINK=true; shift ;;
+    --skip-projects) SKIP_PROJECTS=true; shift ;;
     --help) usage; exit 0 ;;
     *) echo "Unknown option: $1"; usage; exit 1 ;;
   esac
@@ -36,39 +58,94 @@ done
 
 log() { echo "  $1"; }
 
-backup_file() {
-  local file="$1"
-  local base_dir="${2:-$CLAUDE_DIR}"
-  local bak_dir="${3:-$BACKUP_DIR}"
-  if [[ -f "$file" ]]; then
-    local rel="${file#$base_dir/}"
-    local backup_path="$bak_dir/$rel"
-    mkdir -p "$(dirname "$backup_path")"
-    cp "$file" "$backup_path"
+# Files under ~/.claude back up to ~/.claude/.backups/<stamp>/<rel>.
+# Files in a registered project back up inside that project, so a project's
+# history stays with the project rather than landing in the home config.
+backup_path() {
+  local target="$1"
+  case "$target" in
+    "$CLAUDE_DIR"/*) echo "$BACKUP_DIR/${target#$CLAUDE_DIR/}" ;;
+    */.claude/*)     echo "${target%%/.claude/*}/.claude/.backups/$BACKUP_STAMP/${target#*/.claude/}" ;;
+    *)               echo "${target%/*}/.backups/$BACKUP_STAMP/${target##*/}" ;;
+  esac
+}
+
+backup() {
+  local target="$1"
+  [[ -e "$target" ]] || return 0
+  local bak; bak="$(backup_path "$target")"
+  mkdir -p "$(dirname "$bak")"
+  cp -R "$target" "$bak"
+}
+
+# Point $dst at $src. Skips if already correct, so re-running is a no-op.
+link() {
+  local src="$1" dst="$2"
+
+  if [[ -L "$dst" ]] && [[ "$(readlink "$dst")" == "$src" ]]; then
+    return 0
   fi
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    if [[ -L "$dst" ]]; then log "WOULD RELINK: $dst"
+    elif [[ -e "$dst" ]]; then
+      if [[ "$FORCE" == "true" ]]; then log "WOULD REPLACE with link (backup first): $dst"
+      else log "SKIP (real file exists, use --force): $dst"; fi
+    else log "WOULD LINK: $dst"; fi
+    return 0
+  fi
+
+  if [[ -L "$dst" ]]; then
+    rm -f "$dst"
+    ln -s "$src" "$dst"
+    log "RELINKED: $dst"
+    return 0
+  fi
+
+  if [[ -e "$dst" ]]; then
+    if [[ "$FORCE" == "false" ]]; then
+      log "SKIP (real file exists, use --force): $dst"
+      return 0
+    fi
+    backup "$dst"
+    rm -rf "$dst"
+    ln -s "$src" "$dst"
+    log "REPLACED with link (backed up): $dst"
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$dst")"
+  ln -s "$src" "$dst"
+  log "LINKED: $dst"
+}
+
+# Reverse of link(): materialise a real copy where a repo symlink is.
+unlink_to_copy() {
+  local dst="$1"
+  [[ -L "$dst" ]] || return 0
+  local target; target="$(readlink "$dst")"
+  case "$target" in "$REPO_DIR"/*) ;; *) return 0 ;; esac
+  [[ -e "$target" ]] || { log "DROP (dangling): $dst"; [[ "$DRY_RUN" == "false" ]] && rm -f "$dst"; return 0; }
+  if [[ "$DRY_RUN" == "true" ]]; then log "WOULD UNLINK to copy: $dst"; return 0; fi
+  rm -f "$dst"
+  cp -R "$target" "$dst"
+  log "UNLINKED to copy: $dst"
 }
 
 copy_file() {
-  local src="$1"
-  local dst="$2"
-  local base_dir="${3:-$CLAUDE_DIR}"
-  local bak_dir="${4:-$BACKUP_DIR}"
+  local src="$1" dst="$2"
 
   if [[ "$DRY_RUN" == "true" ]]; then
-    if [[ -f "$dst" ]] && [[ "$FORCE" == "false" ]]; then
-      log "SKIP (exists): $dst"
-    elif [[ -f "$dst" ]]; then
-      log "WOULD OVERWRITE (backup + copy): $dst"
-    else
-      log "WOULD CREATE: $dst"
-    fi
-    return
+    if [[ -f "$dst" ]] && [[ "$FORCE" == "false" ]]; then log "SKIP (exists): $dst"
+    elif [[ -f "$dst" ]]; then log "WOULD OVERWRITE (backup + copy): $dst"
+    else log "WOULD CREATE: $dst"; fi
+    return 0
   fi
 
   if [[ -f "$dst" ]] && [[ "$FORCE" == "false" ]]; then
     log "SKIP (exists): $dst"
   elif [[ -f "$dst" ]]; then
-    backup_file "$dst" "$base_dir" "$bak_dir"
+    backup "$dst"
     cp "$src" "$dst"
     log "UPDATED (backed up): $dst"
   else
@@ -78,67 +155,109 @@ copy_file() {
   fi
 }
 
+# Remove links that point into this repo but whose target is gone — i.e. a skill,
+# agent or rule that was renamed or retired. Only ever touches symlinks aimed at
+# $REPO_DIR, so hand-made files and other tools' links are never at risk.
+# This replaces the old manifest-diff prune: a dangling link IS the orphan record.
+prune_orphans() {
+  local dir="$1" removed=0 entry target
+  [[ -d "$dir" ]] || return 0
+  for entry in "$dir"/*; do
+    [[ -L "$entry" ]] || continue
+    target="$(readlink "$entry")"
+    case "$target" in "$REPO_DIR"/*) ;; *) continue ;; esac
+    [[ -e "$target" ]] && continue
+    if [[ "$DRY_RUN" == "true" ]]; then
+      log "WOULD PRUNE (orphan): $entry -> $target"
+    else
+      rm -f "$entry"
+      log "PRUNED (orphan): $(basename "$entry")"
+    fi
+    removed=$((removed + 1))
+  done
+  return 0
+}
+
 echo "install-claude-setup"
 echo "  Source: $SOURCE_DIR"
 echo "  Target: $CLAUDE_DIR"
 [[ "$FORCE" == "true" ]] && echo "  Mode: FORCE (backups to $BACKUP_DIR)"
 [[ "$DRY_RUN" == "true" ]] && echo "  Mode: DRY RUN"
+[[ "$UNLINK" == "true" ]] && echo "  Mode: UNLINK (symlinks -> copies)"
 echo ""
+
+if [[ "$DRY_RUN" == "false" ]]; then
+  mkdir -p "$CLAUDE_DIR"
+  mkdir -p "$CLAUDE_DIR/agents" "$CLAUDE_DIR/skills" "$CLAUDE_DIR/rules" "$CLAUDE_DIR/hooks"
+fi
+
+# --- Unlink mode: reverse the migration and stop ---
+if [[ "$UNLINK" == "true" ]]; then
+  for d in skills agents rules hooks; do
+    [[ -d "$CLAUDE_DIR/$d" ]] || continue
+    for entry in "$CLAUDE_DIR/$d"/*; do
+      [[ -e "$entry" || -L "$entry" ]] || continue
+      unlink_to_copy "$entry"
+    done
+  done
+  echo ""
+  echo "Reverted to copies. The repo is no longer the live source — re-run"
+  echo "install-claude-setup --force to go back to symlinks."
+  exit 0
+fi
 
 # Check hook runtimes
 if [[ -f "$SOURCE_DIR/hooks/check-runtime.sh" ]] && [[ "$DRY_RUN" == "false" ]]; then
   bash "$SOURCE_DIR/hooks/check-runtime.sh" 2>/dev/null || true
 fi
 
-# Create directories
-if [[ "$DRY_RUN" == "false" ]]; then
-  mkdir -p "$CLAUDE_DIR"/{agents,skills,output-styles,hooks}
-fi
-
-# CLAUDE.md
+# --- Copied files (Claude Code writes to these) ---
 copy_file "$SOURCE_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
-
-# settings.json
 if [[ -f "$CLAUDE_DIR/settings.json" ]] && [[ "$FORCE" == "false" ]]; then
   log "SKIP (exists): $CLAUDE_DIR/settings.json — merge manually if needed"
 else
   copy_file "$SOURCE_DIR/settings.json" "$CLAUDE_DIR/settings.json"
 fi
 
-# Agents
+# --- Linked components ---
+for d in "$SOURCE_DIR"/skills/*/; do
+  [[ -f "$d/SKILL.md" ]] || continue
+  name="$(basename "$d")"
+  link "$SOURCE_DIR/skills/$name" "$CLAUDE_DIR/skills/$name"
+done
+
 for f in "$SOURCE_DIR"/agents/*.md; do
   [[ -f "$f" ]] || continue
-  copy_file "$f" "$CLAUDE_DIR/agents/$(basename "$f")"
+  link "$f" "$CLAUDE_DIR/agents/$(basename "$f")"
 done
 
-# Skills — installed as ~/.claude/skills/<name>/SKILL.md (directory structure)
-for f in "$SOURCE_DIR"/skills/*.md; do
-  [[ -f "$f" ]] || continue
-  skill_name="$(basename "$f" .md)"
-  [[ "$DRY_RUN" == "false" ]] && mkdir -p "$CLAUDE_DIR/skills/$skill_name"
-  copy_file "$f" "$CLAUDE_DIR/skills/$skill_name/SKILL.md"
-done
+if [[ -d "$SOURCE_DIR/rules" ]]; then
+  for f in "$SOURCE_DIR"/rules/*.md; do
+    [[ -f "$f" ]] || continue
+    link "$f" "$CLAUDE_DIR/rules/$(basename "$f")"
+  done
+fi
 
-# Commands — installed as skills with directory structure
-for f in "$SOURCE_DIR"/commands/*.md; do
-  [[ -f "$f" ]] || continue
-  skill_name="$(basename "$f" .md)"
-  [[ "$DRY_RUN" == "false" ]] && mkdir -p "$CLAUDE_DIR/skills/$skill_name"
-  copy_file "$f" "$CLAUDE_DIR/skills/$skill_name/SKILL.md"
-done
-
-# Hooks
 for f in "$SOURCE_DIR"/hooks/*.js; do
   [[ -f "$f" ]] || continue
-  copy_file "$f" "$CLAUDE_DIR/hooks/$(basename "$f")"
-  [[ "$DRY_RUN" == "false" ]] && chmod +x "$CLAUDE_DIR/hooks/$(basename "$f")"
+  link "$f" "$CLAUDE_DIR/hooks/$(basename "$f")"
+  [[ "$DRY_RUN" == "false" ]] && chmod +x "$f"
 done
 
-# --- Sync template files to registered projects ---
+# --- Prune renamed/retired components ---
+prune_orphans "$CLAUDE_DIR/skills"
+prune_orphans "$CLAUDE_DIR/agents"
+prune_orphans "$CLAUDE_DIR/rules"
+prune_orphans "$CLAUDE_DIR/hooks"
+
+# --- Sync template files to registered projects (still copies: separate repos) ---
 PROJECTS_FILE="$CLAUDE_DIR/.projects"
 TEMPLATE_DIR="$REPO_DIR/project-template"
 
-if [[ -f "$PROJECTS_FILE" ]] && [[ "$FORCE" == "true" ]]; then
+if [[ "$SKIP_PROJECTS" == "true" ]]; then
+  echo ""
+  echo "Skipped project template sync (--skip-projects). ~/.claude only."
+elif [[ -f "$PROJECTS_FILE" ]] && [[ "$FORCE" == "true" ]]; then
   echo ""
   echo "Syncing project template files to registered projects..."
   echo ""
@@ -152,43 +271,34 @@ if [[ -f "$PROJECTS_FILE" ]] && [[ "$FORCE" == "true" ]]; then
       continue
     fi
 
-    proj_backup="$project_dir/.claude/.backups/$(date +%Y%m%d-%H%M%S)"
     echo "  Project: $(basename "$project_dir") ($project_dir)"
 
-    # Ensure directories exist
     mkdir -p "$project_dir"/.claude/prompts
     mkdir -p "$project_dir"/.github/workflows
-    mkdir -p "$project_dir"/docs/{reference,workflows}
+    mkdir -p "$project_dir"/docs/reference "$project_dir"/docs/workflows
     mkdir -p "$project_dir"/.claude/rules
 
-    # CI workflow + triage prompt — always sync
     for f in "$TEMPLATE_DIR"/.github/workflows/*.yml; do
       [[ -f "$f" ]] || continue
-      copy_file "$f" "$project_dir/.github/workflows/$(basename "$f")" "$project_dir" "$proj_backup"
+      copy_file "$f" "$project_dir/.github/workflows/$(basename "$f")"
     done
     for f in "$TEMPLATE_DIR"/.claude/prompts/*.md; do
       [[ -f "$f" ]] || continue
-      copy_file "$f" "$project_dir/.claude/prompts/$(basename "$f")" "$project_dir" "$proj_backup"
+      copy_file "$f" "$project_dir/.claude/prompts/$(basename "$f")"
     done
-
-    # Reference docs — always sync (these are system docs, not project-specific)
     for f in "$TEMPLATE_DIR"/docs/reference/*.md; do
       [[ -f "$f" ]] || continue
-      copy_file "$f" "$project_dir/docs/reference/$(basename "$f")" "$project_dir" "$proj_backup"
+      copy_file "$f" "$project_dir/docs/reference/$(basename "$f")"
     done
-
-    # Workflow docs — always sync
     for f in "$TEMPLATE_DIR"/docs/workflows/*.md; do
       [[ -f "$f" ]] || continue
-      copy_file "$f" "$project_dir/docs/workflows/$(basename "$f")" "$project_dir" "$proj_backup"
+      copy_file "$f" "$project_dir/docs/workflows/$(basename "$f")"
     done
-
-    # Domain rules (backend, frontend, infra, ios) — always sync
     # SKIP org.md — that's project/org-specific
     for f in "$TEMPLATE_DIR"/.claude/rules/*.md; do
       [[ -f "$f" ]] || continue
       [[ "$(basename "$f")" == "org.md" ]] && continue
-      copy_file "$f" "$project_dir/.claude/rules/$(basename "$f")" "$project_dir" "$proj_backup"
+      copy_file "$f" "$project_dir/.claude/rules/$(basename "$f")"
     done
 
     echo ""
@@ -203,23 +313,9 @@ echo ""
 if [[ "$DRY_RUN" == "true" ]]; then
   echo "Dry run complete. No files were changed."
 else
-  # Write install manifest — used by the drift-warn hook to detect local additions
-  manifest_file="$CLAUDE_DIR/.installed-state"
-  {
-    echo "repo=$REPO_DIR"
-    echo "sha=$(git -C "$REPO_DIR" rev-parse HEAD 2>/dev/null || echo unknown)"
-    echo "installed_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    if [[ -d "$SOURCE_DIR/skills" ]]; then
-      echo "skills=$(cd "$SOURCE_DIR/skills" && ls *.md 2>/dev/null | sed 's/\.md$//' | tr '\n' ',' | sed 's/,$//')"
-    fi
-    if [[ -d "$SOURCE_DIR/commands" ]]; then
-      echo "commands=$(cd "$SOURCE_DIR/commands" && ls *.md 2>/dev/null | sed 's/\.md$//' | tr '\n' ',' | sed 's/,$//')"
-    fi
-    if [[ -d "$SOURCE_DIR/agents" ]]; then
-      echo "agents=$(cd "$SOURCE_DIR/agents" && ls *.md 2>/dev/null | sed 's/\.md$//' | tr '\n' ',' | sed 's/,$//')"
-    fi
-  } > "$manifest_file"
-
-  echo "Global config installed to $CLAUDE_DIR"
+  skills=$(ls -d "$CLAUDE_DIR"/skills/*/ 2>/dev/null | wc -l | tr -d ' ')
+  agents=$(ls -1 "$CLAUDE_DIR"/agents/*.md 2>/dev/null | wc -l | tr -d ' ')
+  echo "Linked $skills skills and $agents agents from $REPO_DIR"
+  echo "Edits to global/ are live immediately — no reinstall needed."
   [[ "$FORCE" == "true" ]] && echo "Backups saved to $BACKUP_DIR"
 fi

@@ -1,4 +1,16 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "model": "opus[1m]",
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+
+  "includeCoAuthoredBy": false,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+
   "permissions": {
     "deny": [
       "Bash(rm -rf *)",
@@ -14,6 +26,7 @@
       "Read(**/secrets/**)"
     ]
   },
+
   "hooks": {
     "SessionStart": [
       {
@@ -21,20 +34,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'Context was compacted. Re-read .claude/CLAUDE.md for project context. Run /catchup if session history feels thin.'"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ~/.claude/hooks/drift-warn.js"
+            "command": "node ~/.claude/hooks/compact-carry.js restore"
           }
         ]
       }
     ],
-    "Stop": [
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/compact-carry.js save"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
       {
         "hooks": [
           {
@@ -66,7 +81,5 @@
         ]
       }
     ]
-  },
-  "model": "opus",
-  "subagentModel": "sonnet"
+  }
 }
