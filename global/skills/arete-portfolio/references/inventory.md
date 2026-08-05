@@ -18,18 +18,18 @@ Activity tiers: **active** ≤45d · **dormant** 46–119d · **archived** ≥12
 
 | Repo | Family | Last | 90d | Stack | Frameworks | CLAUDE.md | develop |
 |---|---|---|---|---|---|---|---|
-| `areteos-py` | areteos | 2026-08-05 | 1139 | node, python | fastapi, pydantic, anthropic-sdk | 240L | yes |
+| `areteos-py` | areteos | 2026-08-05 | 1141 | node, python | fastapi, pydantic, anthropic-sdk | 240L | yes |
 | `beacon` | standalone | 2026-08-04 | 252 | node | — | 74L | yes |
-| `claude-setup` | claude-config | 2026-08-05 | 10 | — | — | 37L | no |
+| `claude-setup` | claude-config | 2026-08-05 | 11 | — | — | 37L | no |
 | `arilearn-phx` | arilearn | 2026-08-04 | 1742 | elixir, node | phoenix, ash, ash_postgres, oban, liveview | 318L | yes |
 | `areteos` | areteos | 2026-07-31 | 2284 | elixir, node | phoenix, ash, ash_postgres, oban, jido, req_llm, liveview | 106L | yes |
 | `bd-pulse` | bd | 2026-07-31 | 1558 | node, python | fastapi, pydantic, anthropic-sdk | 143L | yes |
 | `website` | web-presence | 2026-07-31 | 114 | node | tailwind, ts | 120L | no |
 | `Project-Tahoe` | standalone | 2026-07-31 | 7 | python | fastapi, pydantic | — | no |
-| `arete-claude-plugins` | standalone | 2026-07-30 | 7 | — | — | 71L | no |
 | `arete-terraform-infrastructure` | infrastructure | 2026-07-31 | 50 | — | — | 66L | yes |
 | `github-actions` | standalone | 2026-07-31 | 52 | — | — | — | no |
 | `microsoft-entra-terraform-infrastructure` | infrastructure | 2026-07-31 | 125 | terraform | — | 59L | no |
+| `arete-claude-plugins` | standalone | 2026-07-30 | 7 | — | — | 71L | no |
 | `ari-website` | ari | 2026-07-28 | 60 | node | tailwind | 111L | yes |
 
 ## Dormant (10)

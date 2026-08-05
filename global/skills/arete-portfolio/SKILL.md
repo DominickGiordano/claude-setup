@@ -35,15 +35,15 @@ live in `references/inventory.md` and are **generated** — see [Refreshing](#re
 | Repo | What it is | Stack |
 |---|---|---|
 | `areteos` | The internal AI workflow / agent platform. Phoenix/Ash app running LLM-driven multi-step DAGs (agent / human-in-the-loop / tool steps) for BD and operations. Credential vault, library RAG, MCP integrations, run history, LLM observability (Logfire + Langfuse). Also open-source as "Durable AI Workflows". | Elixir, Phoenix, Ash, Oban, Jido, ReqLLM, LiveView |
-| `areteos-py` | "Multi-tenant platform for creating, running, and governing AI agents and workflows — agent runtime, durable workflow execution." Overlaps `areteos` in stated purpose — see [Open questions](#open-questions). | Python, FastAPI, pydantic, Anthropic SDK |
+| `areteos-py` | **The Python re-base of `areteos`** — same platform (agent runtime, durable workflows, human approval, vault, audit) rebuilt on the Python AI ecosystem, plus a React app for non-technical users. Migration in flight; both repos active. | Python, FastAPI, pydantic, Anthropic SDK |
 | `bd-pulse` | **BD Pulse** — internal CRM. Team BCCs/forwards to `bd@aretecp.com`; Claude classifies BD relevance, tracks activity per person, powers a weighted leaderboard. Email body processed then discarded, metadata only. | Node, Python, FastAPI |
 | `beacon` | Cross-app error/report triage service. First-party apps POST reports to one authenticated ingest endpoint; Beacon dedupes, AI-triages, humanises. "Phase 1 of the Areté Issue Hub arc." | Node |
-| `arilearn-phx` | Phoenix 1.8 + Ash app, Tailwind v4 + daisyUI. Uses `mise` for runtime versions. Purpose beyond "learning platform" — **unknown**, fill in. | Elixir, Phoenix, Ash, Oban, LiveView |
+| `arilearn-phx` | Phoenix 1.8 + Ash app, Tailwind v4 + daisyUI, `mise` for runtimes. Strict conventions — read [Resolved](#resolved) before touching it. Product purpose still **unknown**. | Elixir, Phoenix, Ash, Oban, LiveView |
 | `Project-Tahoe` | Shared data lake + gateway aggregating external market intelligence (PitchBook, DebtWire, EDGAR, exa.ai, news) plus internal operational data. | Python, FastAPI |
 | `arete-terraform-infrastructure` | Terraform IaC for all AWS resources across `arete-dev` (252624323389) and `arete-prod` (059393269593) via Terraform Cloud. Folder-per-app, each its own TFC workspace pair; apps read foundation outputs via `terraform_remote_state`. | Terraform |
 | `microsoft-entra-terraform-infrastructure` | Entra ID (Azure AD) app registrations. One `<app>.tf` per app calling `module.app_registration` + `module.infisical_entra_secrets`. Secrets push to Infisical at `/{app-slug}/` post-apply. | Terraform |
 | `github-actions` | Reusable composite actions and workflows for `aretecp` repos. Drop-in `uses:` references with org defaults baked in. | — |
-| `arete-claude-plugins` | Claude Code **plugin marketplace** for Areté. Each plugin under `plugins/` bundles related skills for a team or workflow. See [Open questions](#open-questions). | — |
+| `arete-claude-plugins` | Claude Code **plugin marketplace** for Areté. Each plugin under `plugins/` bundles related skills for a team or workflow. Not a duplicate of this repo — see [Plugin marketplaces](#plugin-marketplaces). | — |
 | `claude-setup` | This config. Source of truth for `~/.claude/` — symlinked, so edits are live. | Bash, Node |
 | `website` | Corporate site for Areté Partners. Astro on Cloudflare Workers, content as MDX/JSON in-repo, no CMS. Built to be edited with coding agents. | Astro, Tailwind |
 | `ari-website` | Astro landing page for Areté **Intelligence** (the data/AI team). Component-based, Tailwind v4. | Astro, Tailwind |
@@ -77,11 +77,11 @@ yet — check `beacon` first for what to reuse (demand/upvote and watch already 
 ## Naming traps
 
 - **`bd-tracker` and BD Pulse are the same thing.** The repo, containers and deployed infra
-  still use the original `bd-tracker` codename; the product name is **BD Pulse**. A
-  `bd-tracker` entry in `~/.claude/.projects` points at a directory that is not the repo —
-  the real one is `bd-pulse`.
+  still use the original `bd-tracker` codename; the product name is **BD Pulse**. The repo is
+  `bd-pulse`; a bare `~/dev/arete/bd-tracker` path is a stray venv, not the code.
+  (`~/.claude/.projects` was corrected to point at `bd-pulse` on 2026-08-05.)
 - `bd-tracker-frontend-v0` is archived (Mar 2026). Not the current frontend.
-- **`areteos` ≠ `areteos-py`.** Both active, similar stated purpose, different stacks.
+- **`areteos-py` is the Python re-base of `areteos`**, not a separate product. Both active during the migration — a change may belong in both.
 - Areté **Partners** is the firm (`website`); Areté **Intelligence** is the data/AI team
   (`ari-website`, and the `ari-*` family).
 
@@ -101,22 +101,62 @@ yet — check `beacon` first for what to reuse (demand/upvote and watch already 
 
 Full list with dates in `references/inventory.md`.
 
-## Open questions
+## Plugin marketplaces
 
-Flagged rather than guessed. Resolve these and update this file's `Verified:` date.
+`arete-claude-plugins` is **not** a duplicate of `claude-setup` — different audiences:
 
-1. **`arete-claude-plugins` overlaps this repo.** It is an active Claude Code plugin
-   marketplace; `claude-setup` deferred plugin packaging as "Phase 5". Two answers are
-   possible — the marketplace is where `claude-setup` should eventually publish, or the two
-   have diverged and one should win. Decide before doing more plugin work.
-2. **`areteos` vs `areteos-py`.** Both active and both describe an agent/workflow platform.
-   Is the Python one a rewrite, a service alongside, or a parallel effort?
-3. **`arilearn-phx`'s purpose.** Its README covers stack and setup but not what the product
-   does or who uses it.
-4. **`contact-intelligence` + `contact-intelligence-services`** are dormant (May 2026) with a
-   `develop` branch and Project Config. Paused or finished?
-5. **`sextant`** is named by Beacon as a first-party app; only `sextant-designs-j` (dormant,
-   designs) exists locally. Where does the app live?
+| | `claude-setup` | `arete-claude-plugins` |
+|---|---|---|
+| Audience | Dominick's engineering config | The firm — incl. non-engineers |
+| Delivery | Symlinks into `~/.claude` | `arete-marketplace` via `/plugin`, plus zips uploaded to `claude.ai/admin-settings/skills` for chat/Excel/PowerPoint |
+| Owner | Dominick | Spencer Lyon (`slyon@aretecp.com`) |
+| Contents | dev workflow, language skills, hooks, rules | `arete-core` (brand, pptx, AI-idea intake, company research), `arete-recruiting` (resume review, JD drafting), `arete-dev` (infisical, self-hosted runners, context7 MCP), `credit-agreement-reviewer`, `jcl-cadence` |
+
+Two things follow from that:
+
+1. **`arete-marketplace` is not installed on this machine.** Known marketplaces are
+   `claude-plugins-official`, `sglyon-marketplace`, `compound-engineering-plugin`,
+   `sglyon-claude-plugins`. So none of `arete-core`'s firm-wide skills are available here:
+   `claude plugin marketplace add aretecp/arete-claude-plugins`.
+2. **`infisical` exists in both** and has diverged — 103 lines here, 154 in `arete-dev`. Two
+   sources of truth for the same conventions. One should win; the plugin copy reaches the whole
+   firm, this copy reaches only this machine.
+
+The `/ce:*` commands Garrett's original workflow referenced come from the
+**compound-engineering** plugin, installed at *project* scope in `arilearn` and `arilearn-phx`
+only. That is why `/cycle` had to be rewired — those commands don't exist in most repos. Our
+version chains our own `/brainstorm` and `/plan`, so it works everywhere.
+
+## Resolved
+
+Answers found by reading the repos, 2026-08-05:
+
+- **`areteos-py` is the Python re-base of `areteos`**, in its own words: "the Python re-base of
+  Areté's original Elixir/Ash application," keeping AreteOS tenancy, authorization, vault,
+  approval, budget, audit and durability guarantees around a Python execution core. Started
+  2026-06-23; `areteos` started 2026-02-16. Both active because the migration is in flight —
+  when touching either, check whether the change belongs in both.
+- **`Sextant` is a product, not a repo.** "See where AI can create value" — AI-readiness
+  assessment (surveys, interviews, document analysis → readiness profile + prioritized
+  roadmap), powering the *Discover* phase. Described in `ari-website/src/data/products.ts`;
+  `sextant-designs-j` holds designs. No application repo exists locally, though Beacon lists
+  `sextant` as a report source — so either it lives elsewhere or that integration is planned.
+- **`contact-intelligence` is paused, not finished.** Last activity 2026-05-19 was a run of
+  OAuth/MSAL iframe bug fixes (PRs #72, #74) — it stopped mid-remediation rather than at a
+  finish line.
+- **`arilearn-phx`'s conventions are strict and worth reading before touching it** (from its
+  `AGENTS.md`): `mix precommit` must exit 0 before every push and does *not* run tests — CI owns
+  the full suite via `mix precommit.full`; persisted entities **must** be Ash resources with
+  `AshPostgres.DataLayer` (raw `Ecto.Schema` is remediation scope under #993, not precedent);
+  `Req` for HTTP, never HTTPoison/Tesla/httpc; `docs/solutions/` is grep-searchable by YAML
+  frontmatter. Its **product purpose is still unknown** — the docs are all conventions.
+
+## Still open
+
+1. **`arilearn-phx` — what the product actually does and who uses it.** Not in any doc.
+2. **The duplicated `infisical` skill** (see above) needs one owner.
+3. Whether `claude-setup` should publish into `arete-marketplace` rather than stay
+   symlink-only — the "Phase 5" question, now with the marketplace already existing.
 
 ## Refreshing
 
