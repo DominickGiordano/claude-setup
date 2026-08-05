@@ -146,6 +146,13 @@ unlink_to_copy() {
 copy_file() {
   local src="$1" dst="$2"
 
+  # Identical already — do nothing. Without this, every `claude-setup update` run
+  # would re-copy CLAUDE.md and settings.json and leave a backup directory behind,
+  # so routine updates would slowly fill ~/.claude/.backups with identical copies.
+  if [[ -f "$dst" ]] && cmp -s "$src" "$dst"; then
+    return 0
+  fi
+
   if [[ "$DRY_RUN" == "true" ]]; then
     if [[ -f "$dst" ]] && [[ "$FORCE" == "false" ]]; then log "SKIP (exists): $dst"
     elif [[ -f "$dst" ]]; then log "WOULD OVERWRITE (backup + copy): $dst"
@@ -186,6 +193,32 @@ prune_orphans() {
     fi
     removed=$((removed + 1))
   done
+  return 0
+}
+
+# Keep the last N backup directories. `claude-setup update` is now the routine
+# command, so without a cap these grow without bound — 36 dirs / 8MB had already
+# accumulated since March. Timestamped names sort chronologically.
+BACKUP_KEEP=10
+prune_backups() {
+  local root="$CLAUDE_DIR/.backups"
+  [[ -d "$root" ]] || return 0
+  local dirs count excess
+  dirs="$(ls -d "$root"/*/ 2>/dev/null || true)"
+  [[ -n "$dirs" ]] || return 0
+  count="$(echo "$dirs" | wc -l | tr -d ' ')"
+  (( count > BACKUP_KEEP )) || return 0
+  excess=$(( count - BACKUP_KEEP ))
+  echo "$dirs" | sort | head -n "$excess" | while IFS= read -r d; do
+    [[ -n "$d" ]] || continue
+    if [[ "$DRY_RUN" == "true" ]]; then
+      log "WOULD PRUNE backup: $(basename "$d")"
+    else
+      find "$d" -type f -delete 2>/dev/null || true
+      find "$d" -depth -type d -delete 2>/dev/null || true
+    fi
+  done
+  [[ "$DRY_RUN" == "false" ]] && log "Pruned $excess old backup(s), keeping newest $BACKUP_KEEP"
   return 0
 }
 
@@ -260,6 +293,7 @@ prune_orphans "$CLAUDE_DIR/skills"
 prune_orphans "$CLAUDE_DIR/agents"
 prune_orphans "$CLAUDE_DIR/rules"
 prune_orphans "$CLAUDE_DIR/hooks"
+prune_backups
 
 # --- Sync template files to registered projects (still copies: separate repos) ---
 PROJECTS_FILE="$CLAUDE_DIR/.projects"
@@ -324,5 +358,8 @@ else
   agents=$(ls -1 "$CLAUDE_DIR"/agents/*.md 2>/dev/null | wc -l | tr -d ' ')
   echo "Linked $skills skills and $agents agents from $REPO_DIR"
   echo "Edits to global/ are live immediately — no reinstall needed."
-  [[ "$FORCE" == "true" ]] && echo "Backups saved to $BACKUP_DIR"
+  # Only claim a backup when one actually happened. With the idempotent copy_file,
+  # a no-op run creates nothing, and announcing a directory that doesn't exist
+  # sends you looking for a rollback point that was never written.
+  [[ -d "$BACKUP_DIR" ]] && echo "Backups saved to $BACKUP_DIR"
 fi

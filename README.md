@@ -51,18 +51,30 @@ claude
 | `install-claude-setup` | Symlinks global config into `~/.claude/` — skills, agents, rules, hooks; copies CLAUDE.md + settings.json | Your machine | Yes, it's idempotent. `--force` backs up before replacing real files |
 | `init-claude-setup` | Scaffolds `.claude/` + `docs/` in the **current project** | One repo | Yes, skips existing files. **Never overwrites CLAUDE.md** (even with `--force`) |
 
-**Updating global config** (after pulling new changes):
+## Updating
+
+One command, from anywhere:
+
 ```bash
-cd /path/to/claude-setup
-git pull
-# Nothing else to do — skills, agents, rules and hooks are symlinked, so the pull
-# IS the update and it's live in your next message.
-# Only re-run install when a brand-new skill/agent file appeared, or to prune
-# links left dangling by a rename:
-install-claude-setup --skip-projects
+claude-setup update
 ```
 
-`--force` additionally copies `project-template/` files into every repo listed in `~/.claude/.projects`. Add `--skip-projects` when you only mean to touch `~/.claude`.
+It pulls, links anything new, prunes links left dangling by a rename, and re-copies the
+two files that are copies by design. Idempotent — a no-op run changes nothing and writes
+no backup. It refuses to pull over uncommitted changes.
+
+**Most of the time you don't need it.** Skills, agents, rules and hooks are symlinked into
+`~/.claude`, so editing one is live in your next message with no command at all:
+
+| What you changed | What to run |
+|---|---|
+| A skill / agent / rule / hook **body** | nothing — it's already live |
+| **Added** a new skill/agent/rule file, or renamed one | `claude-setup update` (creates the link / prunes the old one) |
+| `global/CLAUDE.md` or `global/settings.json` | `claude-setup update` (these two are copies, not links) |
+| `project-template/` CI workflow or `ci-triage.md` | `claude-setup update --projects` |
+
+`--projects` is the only mode that writes into the repos listed in `~/.claude/.projects`.
+Everything else touches `~/.claude` only.
 
 **Scaffolding a new project**:
 ```bash

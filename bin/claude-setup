@@ -125,6 +125,69 @@ show_status() {
   echo ""
 }
 
+# One command for "update everything". Most edits need no command at all —
+# skills, agents, rules and hooks are symlinked, so editing them is live. This
+# handles the cases that DO need action: pulling someone else's changes, linking
+# newly added files, pruning renames, and re-copying the two files that are
+# copies by design (CLAUDE.md, settings.json).
+do_update() {
+  local sync_projects=false
+  [[ "${1:-}" == "--projects" ]] && sync_projects=true
+
+  echo ""
+  echo -e "${BOLD}${CYAN}Updating Claude config${RESET}"
+  echo -e "${DIM}$REPO_DIR${RESET}"
+  echo ""
+
+  # 1. Pull, but never over uncommitted work.
+  if ! git -C "$REPO_DIR" rev-parse --git-dir >/dev/null 2>&1; then
+    echo -e "  ${YELLOW}Not a git repo — skipping pull.${RESET}"
+  elif [[ -n "$(git -C "$REPO_DIR" status --porcelain)" ]]; then
+    echo -e "  ${YELLOW}Uncommitted changes — skipping pull.${RESET}"
+    echo -e "  ${DIM}Commit or stash first if you meant to pull. Relinking anyway.${RESET}"
+  else
+    local before after
+    before="$(git -C "$REPO_DIR" rev-parse HEAD)"
+    git -C "$REPO_DIR" fetch --quiet origin 2>/dev/null || true
+    if git -C "$REPO_DIR" pull --ff-only --quiet 2>/dev/null; then
+      after="$(git -C "$REPO_DIR" rev-parse HEAD)"
+      if [[ "$before" == "$after" ]]; then
+        echo -e "  ${GREEN}Already up to date.${RESET}"
+      else
+        echo -e "  ${GREEN}Pulled:${RESET}"
+        git -C "$REPO_DIR" log --oneline "$before..$after" | sed 's/^/    /'
+        echo ""
+        echo -e "  ${GREEN}Changed:${RESET}"
+        git -C "$REPO_DIR" diff --name-only "$before..$after" | sed 's/^/    /'
+      fi
+    else
+      echo -e "  ${YELLOW}Could not fast-forward — diverged from origin. Resolve by hand.${RESET}"
+    fi
+  fi
+  echo ""
+
+  # 2. Link new files, prune renames, re-copy CLAUDE.md + settings.json.
+  if [[ "$sync_projects" == "true" ]]; then
+    echo -e "  ${DIM}Relinking + syncing CI files into registered projects...${RESET}"
+    "$REPO_DIR/bin/install-claude-setup" --force | sed 's/^/  /'
+  else
+    echo -e "  ${DIM}Relinking (~/.claude only)...${RESET}"
+    "$REPO_DIR/bin/install-claude-setup" --force --skip-projects | sed 's/^/  /'
+  fi
+
+  # 3. Tell them if the per-repo CI files moved, since that needs the other flag.
+  if [[ "$sync_projects" == "false" ]] && [[ -n "${before:-}" ]] && [[ "${after:-$before}" != "$before" ]]; then
+    if git -C "$REPO_DIR" diff --name-only "$before..${after}" | grep -qE '^project-template/'; then
+      echo ""
+      echo -e "  ${YELLOW}project-template/ changed.${RESET} Registered repos won't get it until:"
+      echo -e "    claude-setup update --projects"
+    fi
+  fi
+
+  echo ""
+  show_status
+}
+
 interactive_menu() {
   echo ""
   echo -e "${BOLD}Claude Code Setup${RESET}"
@@ -134,7 +197,8 @@ interactive_menu() {
 
   echo -e "${BOLD}What do you want to do?${RESET}"
   echo ""
-  echo -e "  ${GREEN}1${RESET}  Install global config            ${DIM}(skills, agents, commands → ~/.claude/)${RESET}"
+  echo -e "  ${GREEN}u${RESET}  Update everything                ${DIM}(git pull + relink ~/.claude — the usual one)${RESET}"
+  echo -e "  ${GREEN}1${RESET}  Install global config            ${DIM}(first time on a new machine)${RESET}"
   echo -e "  ${GREEN}2${RESET}  Init new project                 ${DIM}(first-time scaffold .claude/ + docs/)${RESET}"
   echo -e "  ${GREEN}3${RESET}  Update existing project          ${DIM}(pull latest templates, backs up first)${RESET}"
   echo -e "  ${GREEN}4${RESET}  Set org for current project      ${DIM}(copy org rules: arete, xomware, custom)${RESET}"
@@ -145,6 +209,9 @@ interactive_menu() {
   read -rp "  > " choice
 
   case "$choice" in
+    u|U)
+      do_update
+      ;;
     1)
       echo ""
       read -rp "  Force overwrite? (backs up first) [y/N] " force
@@ -242,6 +309,10 @@ interactive_menu() {
 
 # Direct subcommand mode
 case "${1:-}" in
+  update)
+    shift
+    do_update "$@"
+    ;;
   install)
     shift
     exec "$REPO_DIR/bin/install-claude-setup" "$@"
