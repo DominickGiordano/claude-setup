@@ -16,6 +16,18 @@ the installed skills, so it never goes stale. This page is the annotated version
 | `/execute [feature]` | Act on a plan — shows preview, waits for approval | When plan status is Ready |
 | `/orchestrate [epic]` | Break epic plan into sub-feature folders | Multi-feature work with dependencies |
 
+## Autonomous Execution Commands
+
+| Command | What it does | When to use |
+|---------|-------------|-------------|
+| `/goals [feature]` | Turns an approved `PLAN.md` into `GOALS.md` plus one GitHub issue per task | After `/plan`, when the build is long enough to want tracked tasks |
+| `/goal [path]` | Works each `todo` task to green suite + docs + commit + PR into `base_branch` + green CI, then loops. Never merges | When you want PRs waiting for review instead of watching it work |
+| `/cycle <problem>` | Runs brainstorm → plan → goals → goal in one session, with a gate between each | Starting something substantial from scratch |
+
+`/goal` stops rather than guessing when the suite can't go green, CI fails three times, the
+plan's approach no longer matches the code, or a decision needs you. It checkpoints context
+after every task and compacts at 70%, so it survives long runs.
+
 ## Issue Lifecycle Commands
 
 | Command | What it does | When to use |

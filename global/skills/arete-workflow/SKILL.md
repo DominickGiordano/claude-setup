@@ -27,11 +27,29 @@ skills, so it cannot go stale. This skill is the annotated version.
 | Bug fix, config change, anything < 30 min | `/fix [description]` |
 | Feature, approach unclear | `/research` (optional) → `/brainstorm` → `/plan` → `/execute` → `/end-session` |
 | Feature, approach already decided | `/plan` → `/execute` → `/end-session` |
+| Long build — want PRs waiting for you | `/plan` → `/goals` → `/goal` |
+| All of the above in one session, with gates | `/cycle <the problem>` |
 | Multi-feature epic | `/brainstorm` → `/plan [epic]` → `/orchestrate` → `/plan` each → `/execute` each |
 | Existing GitHub issue | `/work-issue <#>` |
 
-Hard rule: the executor will not touch a plan whose status is `Draft`. Review it, flip to
-`Ready`, then `/execute`.
+Hard rule: neither `/execute` nor `/goals` will touch a plan whose status is `Draft`. Review it,
+flip to `Ready`, then go.
+
+## `/execute` vs `/goal`
+
+Both act on a plan; they differ in supervision.
+
+- **`/execute`** — one supervised pass. Shows a delegation preview, waits for your approval,
+  works in your current branch, logs to `EXECUTION_LOG.md`. Reach for it when scope is small
+  or you want to watch.
+- **`/goals` then `/goal`** — autonomous. `/goals` turns the plan into `GOALS.md` plus one
+  GitHub issue per task; `/goal` then works each task to a green suite, a branch, a PR into
+  `base_branch`, and green CI, checkpointing context at 70% and looping. **It never merges** —
+  it hands you one PR per task, stacked in order when tasks depend on each other. Reach for it
+  when the plan is long.
+
+`/goal` stops rather than guessing when: the suite can't go green, CI fails three times, the
+plan's approach no longer matches the code, or a decision needs you.
 
 ## References
 
@@ -54,6 +72,7 @@ docs/features/[feature-name]/
 ├── RESEARCH.md        ← /research (optional)
 ├── BRAINSTORM.md      ← /brainstorm (optional)
 ├── PLAN.md            ← /plan
+├── GOALS.md           ← /goals — tasks, issue links, progress log
 └── EXECUTION_LOG.md   ← /execute (audit trail)
 
 docs/solutions/        ← the compounder agent (institutional memory)

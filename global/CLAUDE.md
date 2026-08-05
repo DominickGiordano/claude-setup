@@ -65,6 +65,7 @@
 
 **Quick fix** (bug fix, small change, < 30 min): `/fix [description]`
 **Single feature**: `/research` (optional) → `/brainstorm` → `/plan` → `/execute` → `/end-session`
+**Long build, hand me PRs**: `/brainstorm` → `/plan` → `/goals` → `/goal` — or `/cycle` to run all four with gates
 **Epic (multi-feature)**: `/brainstorm` → `/plan [epic]` → `/orchestrate` → `/plan` each stub → `/execute` each → `/end-session`
 **On an existing issue**: `/work-issue <#>` (branches off `base_branch`)
 

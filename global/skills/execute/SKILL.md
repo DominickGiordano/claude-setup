@@ -1,9 +1,24 @@
 ---
 name: execute
-description: "Act on a written plan doc — delegation preview, approval, then execute with an audit trail in EXECUTION_LOG.md."
+description: "Supervised single pass over a plan doc — delegation preview, your approval, then execute with an audit trail in EXECUTION_LOG.md."
 disable-model-invocation: true
 argument-hint: "[feature-name]"
 ---
+
+## `/execute` or `/goal`?
+
+Both act on a plan. Pick by how much supervision you want:
+
+| | `/execute` (this one) | `/goal` |
+|---|---|---|
+| Shape | One supervised pass | Autonomous loop, task by task |
+| You approve | The delegation plan, up front | Once, at `/goals` |
+| Git | Works in your current branch | Branch + PR per task, stacked when dependent |
+| CI | Not touched | Watched to green, 3 strikes then stops |
+| Output | `EXECUTION_LOG.md` | One open PR per task + `GOALS.md` progress log |
+| Reach for it when | Scope is small, or you want to watch | The plan is long and you want PRs waiting for you |
+
+`/goal` needs a `GOALS.md` first — run `/goals` to generate it from the plan.
 
 ## Pre-flight — runs here, in the main session
 

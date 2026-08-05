@@ -6,13 +6,13 @@ Dominick's Claude Code configuration for Areté. Gives every dev a shared, consi
 
 ## What This Gives You
 
-- **Three workflows** — `/fix` for quick changes, brainstorm → plan → execute for features, orchestrate for epics.
+- **Four workflows** — `/fix` for quick changes, brainstorm → plan → execute for features, `/goals` → `/goal` for autonomous PR-per-task builds, orchestrate for epics.
 - **14 agents** — planner, executor, orchestrator, reviewer, compounder, debugger, and more. Each with a single job.
-- **24 skills + 16 slash commands** — Python/FastAPI, Elixir/Phoenix/Ash, Graph API, Docker/Traefik, Anthropic SDK, and more.
+- **25 skills + 19 slash commands** — Python/FastAPI, Elixir/Phoenix/Ash, Graph API, Docker/Traefik, Anthropic SDK, and more.
 - **One copy on disk** — `~/.claude/` symlinks into this repo, so edits are live and config can't drift.
 - **Persistent memory** — session logs, pattern docs, and plan history that survive between sessions.
 - **Project scaffolding** — `.claude/` and `docs/` structure ready to go in any repo.
-- **Reference docs** — commands, agents, workflows, and file structure documented in every project.
+- **Reference docs** — commands, agents, workflows and file structure in the global `arete-workflow` skill. One copy, loaded on demand.
 
 ---
 
@@ -144,6 +144,17 @@ To add to a repo:
 /end-session                logs learnings, clears dirty-files
 ```
 
+### Long build — hand me PRs
+
+```
+/plan [feature]             writes docs/features/[feature]/PLAN.md (status: Ready)
+/goals [feature]            GOALS.md + one GitHub issue per task
+/goal                       each task → green suite → PR into base_branch → green CI → loop
+```
+
+Never merges. You get one PR per task, stacked in order when tasks depend on each other.
+`/cycle <problem>` runs brainstorm → plan → goals → goal in one session with a gate between each.
+
 ### Epic (multi-feature work)
 
 ```
@@ -161,6 +172,7 @@ docs/features/my-feature/
 ├── RESEARCH.md             ← from /research (optional)
 ├── BRAINSTORM.md           ← from /brainstorm (optional)
 ├── PLAN.md                 ← from /plan
+├── GOALS.md                ← from /goals (tasks, issue links, progress log)
 └── EXECUTION_LOG.md        ← from /execute (auto-generated audit trail)
 ```
 
@@ -205,6 +217,9 @@ The ones that carry the workflow:
 | `/plan [topic]` | Write plan doc → `docs/features/[feature]/PLAN.md` |
 | `/orchestrate [epic]` | Break epic into feature folders |
 | `/execute [feature]` | Delegation preview → execute with audit trail |
+| `/goals [feature]` | Plan → `GOALS.md` + one GitHub issue per task |
+| `/goal [path]` | Autonomous: each task to green suite + PR into `base_branch` + green CI. Never merges |
+| `/cycle <problem>` | brainstorm → plan → goals → goal in one session, with a gate between each |
 | `/work-issue [#]` | Full dev cycle: issue → branch → analyze → code → test → commit → update issue |
 | `/issue bug\|new\|from-plan\|update` | GitHub issue lifecycle |
 | `/status [--features\|--board]` | Local feature plans and/or the project board |
