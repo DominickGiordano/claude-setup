@@ -54,6 +54,7 @@ broken", or let `/fix` and `/work-issue` do it as part of their pipeline.
 
 | Command | What it does | When to use |
 |---------|-------------|-------------|
+| `/walkthrough [scope]` | Guided stop-by-stop tour of a codebase, writes `docs/walkthrough/[slug].md` | Onboarding to a repo, or before changing code you don't know |
 | `/status` | Local feature plans, plus the project board with `--board` | Anytime — see what's in flight |
 | `/catchup` | Resume context from last session | Start of session |
 | `/sync-memory` | Backfill session log from git history | When `/end-session` was skipped |

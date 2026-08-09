@@ -68,10 +68,13 @@
 **Long build, hand me PRs**: `/brainstorm` → `/plan` → `/goals` → `/goal` — or `/cycle` to run all four with gates
 **Epic (multi-feature)**: `/brainstorm` → `/plan [epic]` → `/orchestrate` → `/plan` each stub → `/execute` each → `/end-session`
 **On an existing issue**: `/work-issue <#>` (branches off `base_branch`)
+**Understand unfamiliar code**: `/walkthrough [path]` — guided tour, flags friction as you go
 
 Rules:
 - Use `/fix` for small, well-understood changes — it skips brainstorm/plan
 - Run `/research` when evaluating unfamiliar tech before brainstorming
+- Run `/walkthrough` before working in a repo you don't know — `/research` is for external
+  tech, `/walkthrough` is for our own code
 - Skip brainstorm only if approach is already decided
 - Skip plan only for tiny tasks (single file, no risk, < 30 min)
 - Never execute a plan with status `Draft` — flip to `Ready` first
@@ -79,8 +82,8 @@ Rules:
 - Always run `/end-session` before closing
 
 `/issue` and `/status` dispatch on their first arg — `/issue bug|new|from-plan|update`,
-`/status [--features|--board <filter>]`. For full walkthroughs, which command to reach for,
-or where artifacts land, use the `arete-workflow` skill — it loads on demand, so it costs
+`/status [--features|--board <filter>]`. For step-by-step guides, which command to reach
+for, or where artifacts land, use the `arete-workflow` skill — it loads on demand, so it costs
 nothing until asked. `claude-setup help` prints the live command list.
 
 ## Memory
