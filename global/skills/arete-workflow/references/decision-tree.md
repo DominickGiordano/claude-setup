@@ -38,7 +38,16 @@ supervision do you want**.
   all of the above in one session
       └─► /cycle <problem> ────────────────► brainstorm → plan → goals → goal,
                                              with a gate before each stage
+
+  you don't understand the code yet
+      └─► /walkthrough [scope] ────────────► guided tour, stop by stop. Read-only.
+                                             → docs/walkthrough/<slug>.md + friction list
 ```
+
+`/walkthrough` is the one entry above that produces no code. Reach for it *before* the
+others when the blocker is comprehension rather than a decision — a repo you've never
+worked in, a subsystem someone else built, an inherited service. `/research` answers
+questions about *external* tech; `/walkthrough` answers them about ours.
 
 ## Picking between `/execute`, `/goal` and `/work-issue`
 

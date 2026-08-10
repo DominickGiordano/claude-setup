@@ -32,6 +32,10 @@ your-project/
 │   │   ├── deployment/
 │   │   └── ...
 │   │
+│   ├── walkthrough/           ← from /walkthrough — tours of the code
+│   │   ├── beacon-ingest.md   ← stops + anchors + friction table
+│   │   └── trace-webhook-arrives.md
+│   │
 │   ├── reference/             ← system documentation (this folder)
 │   │   ├── commands.md
 │   │   ├── agents.md
@@ -98,7 +102,11 @@ Static documentation about commands, agents, and file structure. Updated when th
 
 ### `docs/workflows/` — Step-by-step guides
 
-Pipeline walkthroughs with examples. Reference these with `@docs/workflows/feature-workflow.md` when you need a refresher.
+Pipeline guides with examples. Reference these with `@docs/workflows/feature-workflow.md` when you need a refresher.
+
+### `docs/walkthrough/` — Tours of the code
+
+Written by `/walkthrough`. One file per scope toured (`beacon-ingest.md`, `trace-webhook-arrives.md`). Each holds the spine, the annotated stops with `file:line` anchors, and a Friction table of things flagged during the tour. Anchors are stamped with the commit they were true of — re-run `/walkthrough` on the same scope to refresh them.
 
 ### `.claude/CLAUDE.md` — Project context
 
@@ -135,6 +143,7 @@ Personal to your machine. Tracks what happened in each session and what files we
 |-----------|---------------------------|
 | `docs/features/` | `.claude/memory/` |
 | `docs/solutions/` | `.claude/.backups/` |
+| `docs/walkthrough/` | |
 | `docs/reference/` | |
 | `docs/workflows/` | |
 | `.claude/CLAUDE.md` | |

@@ -85,6 +85,12 @@ Wait for confirmation. This is the cheap moment to fix the route — after stop 
 If recon found fewer than 4 stops worth making, say so plainly and offer a single
 explanation instead of padding a tour to fill a template.
 
+**Once the route is approved, immediately write the skeleton** to
+`docs/walkthrough/<slug>.md` — front matter, the spine, and the stop list with anchors.
+A tour is a long session and may compact or die partway through. The flags are the part
+that can't be reconstructed from the code, so they must land on disk as they happen, not
+at the end. Don't announce the file; just write it.
+
 ## Phase 3 — Tour (one stop per message)
 
 **Read the file before describing it.** Every stop, every time. A tour built from recon
@@ -137,20 +143,34 @@ shouldn't have to speak in commands.
 `flag` is the "things we don't like" channel. It captures the reaction while the context is
 fresh, which is the only moment it's cheap to notice and the usual moment it gets lost.
 
-Record: the anchor, what was flagged, and the user's note if they gave one. Keep a running
-list in the session — do not write the file until Phase 4. If the user flags something
-without a note, write the observation yourself from what's on screen.
+Record: the anchor, what was flagged, and the user's note if they gave one. If the user
+flags something without a note, write the observation yourself from what's on screen.
+
+**Append it to the doc's Friction table the moment it's flagged**, then continue. One
+line, no ceremony, no confirmation message — the tour shouldn't stutter. If the session
+ends abruptly, the flags survive.
+
+### If context runs short mid-tour
+
+Long tours with several `dig`s will get there. At **≥70% used**: append the stops covered
+so far to the doc, then `/compact` keeping the doc path, current stop number, the
+remaining stop list, and the scope. Re-read the doc after compacting and carry on from
+the next stop.
 
 ## Phase 4 — Write-up
 
-Write `docs/walkthrough/<slug>.md` using `references/writeup-template.md`.
+Complete `docs/walkthrough/<slug>.md` — the skeleton and the Friction table are already
+there from Phases 2 and 3. Fill in what only exists in the conversation: the *shape of it*
+narrative, the per-stop write-ups including everything `dig` and `why` turned up, and the
+open questions. Format in `references/writeup-template.md`.
 
 Slug: repo name for whole-repo, path-derived for a subsystem (`lib/beacon/ingest` →
 `beacon-ingest`), kebab of the phrase for a trace (`a webhook arrives` →
 `trace-webhook-arrives`).
 
-If the file already exists, read it first and update it rather than clobbering it — note
-what changed since the last tour.
+If a walkthrough from a **previous** tour was already at that path, don't clobber it —
+keep the stops that still hold, update anchors that moved, and add a
+`## Changed since [date]` section at the top. The diff between tours is information.
 
 Close with the handoff:
 

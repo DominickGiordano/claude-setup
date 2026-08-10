@@ -83,6 +83,7 @@ the most inbound references.
 
 ```bash
 # load-bearing files — churn beats size as a signal of what matters
+# skip this block entirely if `git rev-parse --git-dir` fails; fall back to mass + seams
 git log --format= --name-only --since=6.months.ago | sort | uniq -c | sort -rn | head -20
 
 # mass, excluding noise
