@@ -37,6 +37,14 @@
             "command": "node ~/.claude/hooks/compact-carry.js restore"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/doc-staleness.js surface"
+          }
+        ]
       }
     ],
     "PreCompact": [
@@ -55,6 +63,10 @@
           {
             "type": "command",
             "command": "node ~/.claude/hooks/session-end.js"
+          },
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/doc-staleness.js record"
           }
         ]
       }

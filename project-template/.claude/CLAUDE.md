@@ -31,8 +31,14 @@
 ## Important Paths
 <!-- Which directories and files matter? Only list non-obvious ones.
      The docs/ structure is standard across all projects:
-       docs/features/    — one folder per feature (RESEARCH, BRAINSTORM, PLAN, EXECUTION_LOG)
-       docs/solutions/   — reusable patterns from the compounder agent
+       docs/architecture.md — how this system works. Run /repo-docs to write it.
+       docs/runbook.md      — how to deploy, roll back, and un-break it. Same command.
+       docs/features/       — one folder per feature (RESEARCH, BRAINSTORM, PLAN, EXECUTION_LOG)
+       docs/solutions/      — reusable patterns from the compounder agent
+       docs/walkthrough/    — guided tours of one subsystem, from /walkthrough
+     architecture.md and runbook.md declare `watches:` globs in their frontmatter. When
+     you change code under those globs, the doc-staleness hook records it and the next
+     session opens knowing the doc drifted. Keep the globs narrow.
      Delete these comments and list your project-specific paths. -->
 
 ## Project Config
