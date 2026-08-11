@@ -45,17 +45,38 @@ one, and a wrong *runbook* costs the most of all — it gets followed during an 
 
 ## Phase 1 — Dispatch
 
+Run `scripts/audit.sh` (no args, from the repo root) for the state of this repo in one line,
+then:
+
 1. Confirm you're at a repo root (`git rev-parse --show-toplevel`). Work from there.
 2. Note which targets exist already:
    - Neither → generate both. Fresh write.
    - One or both exist and `--refresh` was **not** passed → say so and stop. Require
      `--refresh` to touch an existing doc. Do not silently overwrite someone's writing.
    - `--refresh` → non-destructive update, see Phase 5.
-3. Check `CLAUDE.md` (root or `.claude/`) exists. If not, tell the user to run `/init`
-   first and stop — these docs are the tier below it and duplicate it badly without it.
-4. If the repo is archived or dormant, say so and ask whether it's worth documenting. A
+3. **Check for an instruction file** — `CLAUDE.md`, `.claude/CLAUDE.md`, **or `AGENTS.md`**.
+   Any of the three satisfies this; repos with a `.codex/` directory use `AGENTS.md` and are
+   not undocumented. If none exists, tell the user to run `/init` first and stop — these docs
+   are the tier below it and duplicate it badly without it.
+4. **Check the repo is mature enough to describe.** Count real source lines, excluding tests,
+   generated code and vendored deps. Under a few hundred, look before writing: a freshly
+   scaffolded repo has a `PLAN.md`, not an architecture. Writing one anyway documents an
+   intention as though it were a system, and it is wrong the moment real code lands. Say so
+   and offer `CLAUDE.md` alone instead.
+5. **Check for docs already there under other names** — `README.md`, `CONTRIBUTING.md`,
+   `RELEASING.md`, `docs/runbooks/`, `docs/adr/`. If deploy steps already live in
+   `docs/runbooks/*.md`, do **not** write a competing `docs/runbook.md`; add `watches:` to
+   what exists, or write a runbook that links to them rather than restating them. Two docs
+   describing one deploy is how both go stale.
+6. If the repo is archived or dormant, say so and ask whether it's worth documenting. A
    polished doc on a dead repo is an active trap: it makes the wrong repo look like the
    right destination. (`arete-portfolio` has the live/dormant/archived split.)
+
+**Why steps 3–5 exist:** the audit that motivated this command checked only for `CLAUDE.md`
+and `docs/architecture.md`, and on that basis called `github-actions` and `Project-Tahoe`
+undocumented emergencies. `github-actions` in fact had a 136-line README, a 130-line
+CONTRIBUTING, a 122-line RELEASING and 620 lines of runbooks — it just uses `AGENTS.md`.
+`Project-Tahoe` had 92 lines of source. Counting filenames is not counting documentation.
 
 ## Phase 2 — Recon (delegated)
 

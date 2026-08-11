@@ -245,25 +245,40 @@ enforcement is the fix — it may be that nobody ever needed them. Measure first
 
 ### Phase 5 — Tier 1 backfill
 
-- [ ] Step 13 — `Project-Tahoe`: `/init` for CLAUDE.md, then `/repo-docs`. Zero docs today and
-  it's the shared data lake several apps read from — highest blast radius of any gap here.
-- [ ] Step 14 — `github-actions`: `/init` + `/repo-docs`. Zero docs, and every repo consumes
-  its composite actions.
-- [ ] Step 15 — `beacon`, `bd-pulse`: `/repo-docs` (both have `.claude/CLAUDE.md` already;
-  rewrite `bd-pulse`'s 23-line stub rather than editing around it).
-- [ ] Step 16 — `areteos-py`, `arilearn-phx`: `/repo-docs`. Both have substantial CLAUDE.md
-  (293L / 317L) — check for architecture content that should **move** into
-  `docs/architecture.md` and shrink the always-loaded file.
-- [ ] Step 17 — `areteos`, `arete-terraform-infrastructure`,
-  `microsoft-entra-terraform-infrastructure`: `/repo-docs --refresh` on existing architecture
-  docs (add frontmatter, correct drift found in Phase 0), then generate runbooks.
-- [ ] Step 18 — `website`, `ari-website`, `arete-claude-plugins`, `claude-setup`: `/repo-docs`.
-  Lower risk, do last.
-- [ ] Step 19 — Re-run the Phase 0 audit script across all 44 and record final Tier-1 coverage
-  in `EXECUTION_LOG.md`.
-- [ ] Step 20 — Update the `arete-portfolio` skill's `verified:` date and note that Tier-1
-  repos now carry `docs/architecture.md` + `docs/runbook.md`, so future cross-app questions
-  read those instead of re-deriving from source.
+**Reordered after the Phase 0 audit was found to be measuring filenames rather than
+documentation — see `EXECUTION_LOG.md` § CORRECTION.** Fixing a doc that is confidently wrong
+beats writing one that is merely missing: the wrong one is already being trusted.
+
+Each repo is its own branch and its own PR. None of them has a `develop` branch, so the base
+must be confirmed per repo before any PR is opened.
+
+- [x] Step 12a — Replace the ad-hoc audit with `global/skills/repo-docs/scripts/audit.sh`,
+  which counts documentation (source LOC, instruction file under any of three names,
+  arch/stub, `docs/runbook.md` **or** `docs/runbooks/×N`, README weight, `watches:`, age).
+- [x] Step 12b — `/repo-docs` Phase 1: accept `AGENTS.md`; refuse an arch doc for a scaffold;
+  link existing `docs/runbooks/` rather than write a competing `docs/runbook.md`.
+- [x] Step 13 — `claude-setup` itself (Tier 1, and the Phase 3 dogfood target).
+- [ ] Step 14 — `areteos`: `--refresh`. The doc documents a `GateStepExecutor` that does not
+  exist and 9 domains where ~30 exist. Highest value in the portfolio.
+- [ ] Step 15 — `arete-terraform-infrastructure`: `--refresh`. Lists 3 apps of 11, omitting
+  `areteos` and `llm-gateway`.
+- [ ] Step 16 — `bd-pulse`: `--refresh` over the unedited 23-line stub. Link its 3 existing
+  `docs/runbooks/` rather than adding a competing runbook.
+- [ ] Step 17 — `areteos-py`: fresh. Committed today, no arch doc, the Python re-base of
+  `areteos`. Check whether its 293-line `CLAUDE.md` holds architecture prose that should
+  **move** here and shrink the always-loaded file.
+- [ ] Step 18 — `beacon`, `arilearn-phx`, `performance-review`, `website`, `github-actions`:
+  fresh arch docs. All active, none has one. Four of the five already have `docs/runbooks/` —
+  link, don't restate. **`performance-review` was missing from the original Tier-1 list.**
+- [ ] Step 19 — `microsoft-entra-terraform-infrastructure`, `ari-website`,
+  `arete-claude-plugins`: lower risk, last. `microsoft-entra`'s arch doc was updated the same
+  day as the audit and needs frontmatter only.
+- [ ] Step 20 — `Project-Tahoe`: `CLAUDE.md` only. 126 source lines — revisit the arch doc
+  when there is a system to describe rather than a plan.
+- [ ] Step 21 — Re-run `audit.sh ~/dev/arete`, record final coverage in `EXECUTION_LOG.md`.
+- [ ] Step 22 — Update the `arete-portfolio` skill's `verified:` date, note that Tier-1 repos
+  carry `docs/architecture.md`, and **correct its active-repo list** — it omits
+  `performance-review`, which has committed within the last week.
 
 ## Risks / Open Questions
 

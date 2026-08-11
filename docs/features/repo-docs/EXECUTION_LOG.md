@@ -154,3 +154,68 @@ trap), the per-file-symlink reason a new hook needs `--force`, and the fact that
 **no CI at all** — verified, no `.github/` here — so "deploy" means the symlinks already point
 at your worktree.
 
+## Phase 5 — CORRECTION: the Phase 0 audit was measuring the wrong thing
+
+Before writing docs for the two repos the plan called emergencies, recon on both showed the
+audit that named them was wrong. It grepped for two **filenames** — `CLAUDE.md` and
+`docs/architecture.md` — and called their absence "no docs at all."
+
+| Repo | Plan said | Actually |
+|---|---|---|
+| `github-actions` | "no CLAUDE.md and no architecture doc — highest priority" | 136-line README, 130-line CONTRIBUTING, 122-line RELEASING, **3 runbooks totalling 620 lines** under `docs/runbooks/`, and an `AGENTS.md` (it has a `.codex/` dir). Thoroughly documented. |
+| `Project-Tahoe` | "zero docs, highest blast radius" | **126 source lines.** `api/app.py` is 34 lines, one health test, a `PLAN.md` and kickoff notes. A scaffold, 7 commits old. An architecture doc here would document an intention as a system. |
+
+Two systematic errors, both now fixed in the tooling rather than worked around:
+
+1. **`AGENTS.md` is a CLAUDE.md equivalent** and 18 of 44 repos use it. Counting only
+   `CLAUDE.md` inflated the instruction-file gap from **5 repos to 20**.
+2. **`docs/runbooks/*.md` already exists in 6 repos** — `areteos-py`, `arilearn-phx`,
+   `bd-pulse`, `beacon`, `github-actions`, `website`. The plan's claim that nothing owns the
+   runbook tier was wrong. Writing a competing `docs/runbook.md` in those repos would create
+   exactly the two-docs-one-deploy split that guarantees both go stale.
+
+### Fixes
+
+- `global/skills/repo-docs/SKILL.md` Phase 1 gained three gates: accept `AGENTS.md`; refuse to
+  write an architecture doc for a scaffold (offer `CLAUDE.md` instead); detect existing
+  `README`/`CONTRIBUTING`/`RELEASING`/`docs/runbooks/` and link rather than restate.
+- `global/skills/repo-docs/scripts/audit.sh` — **new**, replaces the ad-hoc audit. Counts
+  documentation, not filenames: source LOC (scaffold detection), instruction file under any of
+  the three names, architecture doc with stub detection, runbook **or** `docs/runbooks/×N`,
+  README/CONTRIBUTING/RELEASING weight, whether `watches:` is live, and days since last commit.
+
+### Corrected picture, all 44 repos
+
+- **Instruction file**: 39/44 have one. Missing: `Project-Tahoe`, `areteintelligence-site`,
+  `ari-command-center`, `jm-areteos-designs`, `ms-365-mcp-server` — and 4 of those 5 are
+  dormant (66–152 days). The only active one is `Project-Tahoe`, a scaffold.
+- **Architecture doc**: 6/44, two of them unedited stubs (`bd-pulse`, `contact-intelligence`)
+  and two of them **proven wrong** in Phase 0 (`areteos`, `arete-terraform-infrastructure`).
+- **Runbook tier**: 6 repos via `docs/runbooks/`, 1 via `docs/runbook.md` (`claude-setup`).
+- **`watches:` live**: 1 repo (`claude-setup`).
+- `performance-review` is active (5 days, 21k LOC) and was **missing from the plan's Tier-1
+  list of 13** entirely.
+
+### Revised Phase 5 priority
+
+Fixing a doc that is confidently wrong beats writing one that is merely missing — a wrong doc
+is already being trusted. Reordered:
+
+| # | Repo | Why | Was |
+|---|---|---|---|
+| 1 | `areteos` | arch doc names a `GateStepExecutor` that does not exist; 9 domains documented of ~30 | step 17 |
+| 2 | `arete-terraform-infrastructure` | arch doc lists 3 apps of 11, omitting `areteos` itself | step 17 |
+| 3 | `bd-pulse` | arch doc is an unedited 23-line template stub; 3 runbooks to link | step 15 |
+| 4 | `areteos-py` | committed today, no arch doc, the Python re-base of `areteos` | step 16 |
+| 5 | `beacon`, `arilearn-phx`, `performance-review`, `website`, `github-actions` | active, no arch doc; 4 of 5 have runbooks to link not replace | 15–18 |
+| 6 | `Project-Tahoe` | `CLAUDE.md` only — revisit the arch doc when there's a system to describe | was #1 |
+
+`Project-Tahoe` and `github-actions`, the plan's two emergencies, are last and near-last.
+
+### Known limitation of audit.sh
+
+The SRC column is inflated on the largest repos (`contact-intelligence` 1.2M,
+`areteos-py` 583k) — the `*.yml` glob and an incomplete prune list are catching generated
+files. It does not affect any decision here, since the column is only used as a
+scaffold/not-scaffold gate at the low end, but it should not be read as a real LOC count.
+
