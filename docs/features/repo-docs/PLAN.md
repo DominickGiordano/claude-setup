@@ -1,8 +1,15 @@
 # Plan: Repo Docs — tiered per-repo context that stays current
 
-**Status**: In Progress
+**Status**: In Progress — Phases 0–3 done; Phase 5 handed to Dominick
 **Created**: 2026-08-10
 **Last updated**: 2026-08-10
+
+> **Where this stands (2026-08-10).** Phases 0, 1, 2, 3 are built, tested and live, plus
+> `claude-setup`'s own docs. Phase 4 stays deferred by design. **Phase 5 (Steps 14–22) is
+> deliberately not automated** — Dominick runs `/repo-docs` per repo, since the runbook facts
+> the command surfaces as `**unknown**` (deploy triggers, rollback sequences, prod URLs) are
+> exactly the ones only the person in that repo can fill in. Steps 14–22 below are the
+> running order, priority-corrected. `audit.sh ~/dev/arete` shows current coverage.
 
 ## Summary
 
