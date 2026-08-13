@@ -11,11 +11,14 @@ Prepare a pull request for current changes.
    as `{base}` below — do NOT assume `main`.
 1. Run `git diff {base} --stat` to see what changed
 2. Run `git log {base}..HEAD --oneline` to see commits
-3. Write a PR description with:
-   - **What**: brief summary of changes
-   - **Why**: context/motivation
-   - **How**: approach taken
-   - **Testing**: how to verify it works
+3. Write a PR description — three parts, nothing else:
+   - **What**: what changed. Bullets, ≤ 25 words each, one clause each.
+   - **Why**: the motivation. One or two lines.
+   - **Test**: how the reviewer confirms it works.
+
+   No **How** section — it restates the diff the reviewer is already looking at.
+   Include `Closes #N` if there's an issue. See `~/.claude/rules/writing-style.md`
+   for the caps; `guard-bash.js` enforces them at `gh pr create` time.
 4. Suggest a conventional commit-style PR title: `feat:`, `fix:`, `chore:`, etc.
 5. Stage and commit if there are unstaged changes (ask first)
 
