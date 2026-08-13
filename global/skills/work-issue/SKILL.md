@@ -36,34 +36,28 @@ Full dev cycle orchestrator. Takes a GitHub issue number, loads all context, pla
 
 ### 3. Post Work Plan to Issue
 
-Post a **detailed, well-formatted work plan** as a comment. Mandatory — must reflect what we're about to do BEFORE coding.
+Post the plan as a comment before coding. Mandatory. Keep it scannable — a
+reader should get the scope from line one. `writing-style.md` caps issue
+comments at 15 lines.
 
 ```bash
 gh issue comment {number} --body "$(cat <<'EOF'
-## Work Plan
+## Plan — `{branch-name}`
 
-**Branch:** `{branch-name}`
-**Date Started:** {YYYY-MM-DD}
+{One line: what changes and why.}
 
-### Scope
-- {One-line summary of what this change does and why}
+- [ ] {Concrete step, verb-first}
+- [ ] {Concrete step, verb-first}
+- [ ] Tests + verify
 
-### Approach
-- {Step-by-step description of what will be changed}
-- {Which files/modules are affected}
-- {Key decisions or tradeoffs}
-
-### Subtasks
-- [ ] {Concrete implementation step 1}
-- [ ] {Concrete implementation step 2}
-- [ ] Run tests and verify
-- [ ] Code review / commit
-
-### Risks & Gotchas
-- {Anything non-obvious discovered during analysis}
+**Watch out:** {non-obvious thing found during analysis, or omit the line}
 EOF
 )"
 ```
+
+Dropped on purpose: `Date Started` (GitHub timestamps the comment), and a
+separate `Approach` section (the checklist already is the approach — writing
+both means writing it twice).
 
 If `pm_tool: github-projects`, also move the issue card on the project board to **In Progress** (use `github_project_statuses` from Project Config). Add to the project first if it isn't there: `gh project item-add {github_project_number} --owner {org} --url {issue_url}`.
 
@@ -111,25 +105,23 @@ Always:
 
 ```bash
 gh issue comment {number} --body "$(cat <<'EOF'
-## Completion Notes — {YYYY-MM-DD}
+## Done
 
-### What Was Done
-- {Specific change 1 — what file/module, what changed, why}
+- `{path/to/file.ts}` — {what changed, one clause}
+- `{path/to/other.ex}` — {what changed, one clause}
 
-### Root Cause (if bug fix)
-- {What was actually wrong and why}
+**Root cause:** {bug fixes only — what was actually wrong. Omit otherwise.}
 
-### Issues Encountered
-- {Problems hit during implementation and how they were resolved}
-
-### Discovered Issues
-- {Bugs, tech debt, or risks found that were NOT part of this task — severity + whether a new issue was created}
-
-### Files Changed
-- `{path/to/file.ts}` — {one-line summary}
+**Follow-ups:** {problems found that were NOT this task — one line each, with
+the new issue number if filed. Omit the line if none.}
 EOF
 )"
 ```
+
+The file path carries the "where", so a separate `Files Changed` section
+repeated every line. `Issues Encountered` is gone: if a problem changed the
+approach it belongs in `Done`; if it was resolved and left no trace, nobody
+reading the issue in six months needs it.
 
 If `pm_tool: github-projects`, move the card:
 - Ready for review → **In Review**

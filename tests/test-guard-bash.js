@@ -29,6 +29,76 @@ const cases = [
   ["benign", "echo main", WITH_DEV, "allow"],
   ["benign", "git log main..HEAD --oneline", WITH_DEV, "allow"],
   ["benign", "gh pr list --base main", WITH_DEV, "allow"],
+
+  // --- prose caps -----------------------------------------------------------
+  // Offending bodies are built here rather than pasted so the file stays
+  // readable.
+  [
+    "prose",
+    'gh issue comment 5 --body "## Done\n- ' + "word ".repeat(60) + '"',
+    WITH_DEV,
+    "deny",
+  ],
+  [
+    "prose",
+    'gh pr create --base develop --body "## What\n- adds a flag"',
+    WITH_DEV,
+    "allow",
+  ],
+  [
+    "prose",
+    'gh issue comment 5 --body "I have successfully added the flag"',
+    WITH_DEV,
+    "deny",
+  ],
+  [
+    "prose",
+    'gh pr create --base develop --body "This PR does the following"',
+    WITH_DEV,
+    "deny",
+  ],
+  [
+    "prose",
+    'gh issue comment 5 --body "In summary, the fix works"',
+    WITH_DEV,
+    "deny",
+  ],
+  // A bullet that is long only because of a URL and a path must NOT trip.
+  [
+    "prose",
+    'gh issue comment 5 --body "- see `' +
+      "a/very/long/path/".repeat(12) +
+      'x.ex` and https://example.com/' +
+      "y".repeat(120) +
+      '"',
+    WITH_DEV,
+    "allow",
+  ],
+  // Boundary pair around BULLET_CHARS=180. "wordy " is 6 chars, so 29 reps is
+  // 173 of prose (under) and 31 is 185 (over). Pins the calibration: a 250 cap
+  // let aretecp/bd-pulse#2667's worst bullet through by one character.
+  [
+    "prose",
+    'gh issue comment 5 --body "- ' + "wordy ".repeat(29) + '"',
+    WITH_DEV,
+    "allow",
+  ],
+  [
+    "prose",
+    'gh issue comment 5 --body "- ' + "wordy ".repeat(31) + '"',
+    WITH_DEV,
+    "deny",
+  ],
+  // Read-only gh commands are never inspected.
+  ["prose", "gh pr view 5 --json body", WITH_DEV, "allow"],
+  ["prose", "gh issue list --search 'successfully added'", WITH_DEV, "allow"],
+  // Missing --body-file target fails open rather than blocking the call.
+  [
+    "prose",
+    "gh pr create --base develop --body-file /nonexistent/path.md",
+    WITH_DEV,
+    "allow",
+  ],
 ];
 
 let fail = 0;

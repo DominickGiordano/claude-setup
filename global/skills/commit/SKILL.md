@@ -18,17 +18,26 @@ Analyze all changed files, stage them, and create a well-formatted commit. Do NO
    - `.DS_Store`, `node_modules/`, build artifacts
    - Anything in `.gitignore`
    - If unsure about a file, ask before staging
-6. Write a commit message in this format:
+6. Write a commit message. Default shape — bullets, no headings:
 
 ```
 <type>: <short summary>
 
-## <Section Title>
 - Bullet describing a specific change
 - Another bullet
+```
 
-## <Section Title>
-- Bullet describing a specific change
+Add `## Section Title` headings **only** when the commit genuinely spans more
+than one concern:
+
+```
+<type>: <short summary>
+
+## Fixes
+- Bullet
+
+## Docs
+- Bullet
 ```
 
 Where `<type>` is one of: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `style`
@@ -37,8 +46,8 @@ Where `<type>` is one of: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `s
 8. Show `git log -1` to confirm.
 
 ## Rules
-- Group related changes under clear section headings
-- Each bullet should describe WHAT changed and WHY (briefly)
+- Headings only for multi-concern commits — a single-concern commit gets a flat bullet list
+- Each bullet should describe WHAT changed and WHY (briefly), one clause
 - Keep the summary line under 72 characters
 - Use present tense ("add", "fix", "update" — not "added", "fixed")
 - If changes span multiple unrelated concerns, suggest splitting into multiple commits and ask before proceeding

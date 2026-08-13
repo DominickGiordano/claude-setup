@@ -45,6 +45,9 @@
 - Call out assumptions and tradeoffs
 - If something seems off, say so
 - **All doc output as `.md` files** — never paste long docs into chat, write to file
+- Tone and length for chat, GitHub, commits and code comments live in
+  `~/.claude/rules/writing-style.md`, which always loads. "No fluff" as a bullet
+  here never bound anything — the rule names the specific shapes to delete.
 
 ## Branch Flow — HARD RULE, EVERY REPO, NO EXCEPTIONS
 **`feature → develop → main`. ALWAYS.**
@@ -97,6 +100,13 @@ nothing until asked. `claude-setup help` prints the live command list.
 - Run `/end-session` before closing to summarize and commit learnings
 
 ## Rules loaded separately
-`~/.claude/rules/` carries the detail so it isn't in context every session:
-`root-cause.md` and `git-discipline.md` always load; `verification.md` loads on UI and
-template files; `config-hygiene.md` loads when editing Claude config itself.
+`~/.claude/rules/` carries the detail so it isn't in context every session.
+Always load: `root-cause.md`, `git-discipline.md`, `writing-style.md`, and
+`constitution.md` + `constitution-local.md` (Kenn's Clanker Constitution,
+vendored verbatim, plus where we differ from it). `verification.md` loads on UI
+and template files; `config-hygiene.md` loads when editing Claude config itself.
+
+Precedence when they disagree: this file and the project's `CLAUDE.md` beat
+`constitution.md`. See `constitution-local.md` — in particular, its §2 says not
+to impose planning ceremony on straightforward work, and "Plan before code —
+always" above wins. Use `/fix` for the small stuff instead.

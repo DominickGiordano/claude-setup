@@ -161,21 +161,24 @@ Closes #<issue>
 Goal: `docs/features/<feature>/GOALS.md` — Task <id>
 
 ## What changed
-<two or three lines>
+<two or three lines, one clause each>
 
 ## Tests
 - `<name>` — <what it asserts>
 - `<real_user_scenario>` — <the user path it exercises>
+- <"Verified in browser: <what you did>" or "Not verified beyond unit tests">
 
-## Verification
-<"Verified in browser: <what you did>" or "Did not verify — only unit tests">
-
+<!-- Only if there IS something non-obvious: -->
 ## Review notes
-<anything non-obvious, or "none">
+<the non-obvious thing>
 
 <!-- If stacked: -->
 > Stacked on #<prev PR>. Merge that one first.
 ```
+
+`Review notes` is omitted entirely when there is nothing to say — a section
+whose usual value is "none" trains reviewers to skip the whole body.
+Verification folds into `Tests` because both answer "how do I know it works".
 
 ## Step 8 — Watch CI to green
 
