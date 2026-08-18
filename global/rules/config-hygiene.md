@@ -19,6 +19,11 @@ Loads when editing Claude configuration itself.
 - Prefer a skill over a CLAUDE.md section when the content is a procedure rather than
   a standing fact. A skill body costs nothing until it's invoked; CLAUDE.md is in
   context every session.
+- **Exception: a standard is not a procedure.** If it must hold on every task without
+  anyone asking for it, it goes in an always-loaded rule, not a skill. `caveman-code`
+  and `pr-sizing` were skills for months and were never once invoked, so the comment
+  and PR-size standards simply did not apply. Both now live in `rules/`. "Costs
+  nothing until invoked" is the wrong trade when the answer is *never invoked*.
 - Do NOT restate linter/formatter rules. Reference the config file instead.
 - Do NOT write long explanatory paragraphs. Use short imperative bullets.
 - Do NOT update `CLAUDE.md` without reading it first and checking the line count after.

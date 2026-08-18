@@ -18,4 +18,9 @@ subagent. Do them before delegating:
 
 Then invoke the `planner` agent with the topic and any context paths above.
 
+The plan's implementation section MUST be the numbered decomposition from
+`rules/pr-sizing.md` — one line per piece with its rough size and dependencies —
+and the plan is not `Ready` until Dominick has confirmed that split. A plan whose
+implementation section is prose rather than numbered pieces is incomplete.
+
 $ARGUMENTS

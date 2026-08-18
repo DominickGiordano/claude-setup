@@ -12,8 +12,8 @@ Prepare a pull request for current changes.
 1. Run `git diff {base} --stat` to see what changed
 2. Run `git log {base}..HEAD --oneline` to see commits
 3. If the hand-written logic runs past ~400 lines (docs, tests, lockfiles and
-   generated files don't count), stop and offer the split from the `pr-sizing`
-   skill before opening anything. `guard-bash.js` asks the same question at
+   generated files don't count), stop and offer the split from `rules/pr-sizing.md`
+   before opening anything. `guard-bash.js` asks the same question at
    `gh pr create`, but by then the branch is already one lump
 4. Write a PR description — three parts, nothing else:
    - **What**: what changed. Bullets, ≤ 25 words each, one clause each.

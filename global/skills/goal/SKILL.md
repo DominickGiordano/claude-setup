@@ -84,6 +84,10 @@ Write the tests the task names, including the real user scenario test.
 
 ## Step 3 — Implement
 
+`rules/code-style.md` and `rules/pr-sizing.md` both apply and both always load.
+If this task's diff is heading past ~400 lines of hand-written logic, stop and
+offer the split rather than finishing it and handing over one lump.
+
 The minimum code that makes the tests pass. Follow existing patterns in the file you're
 editing over patterns you'd prefer. No unrequested refactors, no speculative abstraction.
 
