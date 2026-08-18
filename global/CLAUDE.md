@@ -76,6 +76,7 @@
 **Epic (multi-feature)**: `/brainstorm` → `/plan [epic]` → `/orchestrate` → `/plan` each stub → `/execute` each → `/end-session`
 **On an existing issue**: `/work-issue <#>` (branches off `base_branch`)
 **Understand unfamiliar code**: `/walkthrough [path]` — guided tour, flags friction as you go
+**Strip bloat from existing code**: `/decruft [path]` — reports what `code-style.md` bans, applies on approval
 **Document a repo**: `/repo-docs` — writes `docs/architecture.md` + `docs/runbook.md`
 
 Rules:

@@ -43,6 +43,7 @@ after every task and compacts at 70%, so it survives long runs.
 | Command | What it does | When to use |
 |---------|-------------|-------------|
 | `/code-review` | Review the working diff for quality, security, correctness | After implementing, before committing |
+| `/decruft [path]` | Sweep existing code against `rules/code-style.md` — reports comment, dead-code and structure hits, applies on approval | Inherited or LLM-written code that reads bloated |
 | `/verify` | Drive the running app to confirm a change actually works | Required for UI / template / state-machine changes |
 | `/commit` | Stage and commit with structured message | When changes are ready to commit |
 | `/pr` | Prepare a pull request description off `base_branch` | When branch is ready for review |
