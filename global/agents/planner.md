@@ -43,8 +43,8 @@ Use this exact structure:
 
 ## Implementation Steps
 One step = one PR. Give each a rough line count and its dependencies, and split
-so every step merges on its own with tests passing. Load the `pr-sizing` skill
-for the split rules and budgets.
+so every step merges on its own with tests passing. `rules/pr-sizing.md` always
+loads and carries the split rules and budgets — apply them without being asked.
 
 - [ ] Step 1 — [specific, executable action] — ~N lines — no deps
 - [ ] Step 2 — [action] — ~N lines — needs 1

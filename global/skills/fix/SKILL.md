@@ -36,7 +36,7 @@ Tests: 42 passed. Lint: clean.
 - Do NOT create new files unless the fix requires it
 - If the fix is bigger than expected — 5+ files, past ~200 lines of logic, or it
   needs architectural decisions — stop. Say what you found and recommend `/plan`,
-  or the split from the `pr-sizing` skill. Do not push through and hand over a
+  or the split from `rules/pr-sizing.md`. Do not push through and hand over a
   500-line diff
 - Always read before editing — understand the context
 - Run tests after every fix

@@ -79,7 +79,7 @@ approach fails. Never restate the line. No `// Step 1:` scaffolding, no comment
 restating the function name above the function.
 
 `code-style.md` carries the rest — it governs the code, this file governs the
-prose. Examples of both live in the `caveman-code` skill.
+prose. Both always load, worked examples included.
 
 ## What this rule is not
 

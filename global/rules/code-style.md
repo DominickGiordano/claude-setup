@@ -15,23 +15,8 @@ That extra mass is not robustness. It is surface area, and someone has to read i
 `# calculate the total`. Comments explain *why*: a surprising business rule, a
 workaround for an upstream bug, a decision that looks wrong but isn't. Never *what*.
 
-Length is not the test — restatement is. This is nine lines and all of it stays,
-because none of it is recoverable from the code:
-
-```python
-# Memoized on (step, capabilities-so-far) rather than per-path. Enumerating
-# simple paths was exponential in the diamond count — 13.9s at 61 steps, hours
-# at ~90, on the event loop (#1459). Reaching a step with an accumulator already
-# explored from cannot reach a new trifecta, since capabilities only grow.
-# The memo is also what stops a cycle now, in place of the old per-path `seen`.
-```
-
-A perf measurement, an issue ref, and a correctness argument for why the memo is
-safe. Deleting it costs the next reader an hour. Whereas `# Step 4: Rate limiting`
-above `test_rate_limiting(client)` is one line and should not exist. Do not trade
-a long comment for a short one — trade a *what* for a *why*, at whatever length
-the why needs. `guard-comments.js` blocks the restatement shape; it deliberately
-never looks at volume.
+Length is not the test — restatement is. Never trade a long comment for a short
+one; trade a *what* for a *why*, at whatever length the why needs. Worked below.
 
 **Let it crash.** No `try/except` without a specific recovery action. A real
 traceback beats a caught error that logs and returns `None`, then explodes 40
@@ -98,6 +83,56 @@ Don't golf either. A clever one-liner that takes a minute to decode fails the
 same standard as the 60-line version — both make the reader work. Plain and
 boring beats both.
 
-Worked examples of each failure mode live in the `caveman-code` skill; load it
-when a task feels like it "needs" a class hierarchy, a config object, or a
-helper module.
+## The four shapes, worked
+
+Code go from top to bottom. Code do thing. Code stop.
+
+**The wrapper tax.** A docstring, a `try/except` per failure mode, a log line
+per step — around one expression.
+
+```python
+# 20 lines: def load_config_from_file(path) -> Optional[Dict[str, Any]]
+#   docstring, try/open/json.load, log success, except FileNotFoundError -> None,
+#   except JSONDecodeError -> None
+config = json.loads(Path(path).read_text())
+```
+
+The function was never needed. A missing file's traceback says more than the log
+line did, and returning `None` forces a check on every caller that the crash made
+unnecessary.
+
+**The class that wanted to be a function.** `DataProcessor(config)` with
+`self.logger`, `_clean`, `_transform`, and `process` narrating its own start and
+finish, is two lines:
+
+```python
+def process(df, min_amount):
+    df = df.dropna(subset=["vendor", "amount"])
+    return df[df.amount >= min_amount]
+```
+
+**Defensive noise.** Six nested `is not None` / `hasattr` / `len(...) > 0` checks
+collapse to `results = response.data`. If `data` can genuinely be missing, handle
+that one case. Don't defend against hypotheticals nobody named.
+
+**Comments: length is the wrong axis.** The instinct on "fewer comments" is to
+shorten, which deletes the wrong ones. `# increment the counter` is one line and
+earns nothing. This is five and every one stays:
+
+```python
+# Memoized on (step, capabilities-so-far) rather than per-path. Enumerating
+# simple paths was exponential in the diamond count — 13.9s at 61 steps, hours
+# at ~90, on the event loop (#1459). Reaching a step with an accumulator already
+# explored from cannot reach a new trifecta, since capabilities only grow.
+# The memo is also what stops a cycle now, in place of the old per-path `seen`.
+by_id = {s.get("id"): s for s in steps}
+```
+
+A measurement, an issue ref, and the argument for why the memo is safe — none of
+it reconstructible from the code. Shortening it to `# memoize by (step, caps)`
+throws away the content and keeps the part the code already said.
+
+The question is never "is this comment long?" It's "what does a reader lose if I
+delete it?" Nothing → delete it at any length. An hour of re-derivation → keep it
+at any length. `guard-comments.js` enforces the mechanical half (a one-line
+comment whose words all appear in the line below); the rest is judgment.

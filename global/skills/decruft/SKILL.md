@@ -15,7 +15,7 @@ produces is pure deletion, which is exactly the diff nobody reads carefully.
 
 `$ARGUMENTS` is a path: a file, a directory, or a glob. No path given → ask for
 one. Do NOT sweep a whole repo in one pass; that's an unreviewable diff and it
-violates `pr-sizing`. Suggest the largest subdirectory instead.
+violates `rules/pr-sizing.md`. Suggest the largest subdirectory instead.
 
 Skip: generated files, vendored code, lockfiles, snapshots, migrations, anything
 matching `.gitignore`. Say what you skipped and why.
