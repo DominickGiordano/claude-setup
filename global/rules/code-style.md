@@ -15,6 +15,24 @@ That extra mass is not robustness. It is surface area, and someone has to read i
 `# calculate the total`. Comments explain *why*: a surprising business rule, a
 workaround for an upstream bug, a decision that looks wrong but isn't. Never *what*.
 
+Length is not the test — restatement is. This is nine lines and all of it stays,
+because none of it is recoverable from the code:
+
+```python
+# Memoized on (step, capabilities-so-far) rather than per-path. Enumerating
+# simple paths was exponential in the diamond count — 13.9s at 61 steps, hours
+# at ~90, on the event loop (#1459). Reaching a step with an accumulator already
+# explored from cannot reach a new trifecta, since capabilities only grow.
+# The memo is also what stops a cycle now, in place of the old per-path `seen`.
+```
+
+A perf measurement, an issue ref, and a correctness argument for why the memo is
+safe. Deleting it costs the next reader an hour. Whereas `# Step 4: Rate limiting`
+above `test_rate_limiting(client)` is one line and should not exist. Do not trade
+a long comment for a short one — trade a *what* for a *why*, at whatever length
+the why needs. `guard-comments.js` blocks the restatement shape; it deliberately
+never looks at volume.
+
 **Let it crash.** No `try/except` without a specific recovery action. A real
 traceback beats a caught error that logs and returns `None`, then explodes 40
 lines later with no context. No bare `except`, no `except Exception: pass`, no

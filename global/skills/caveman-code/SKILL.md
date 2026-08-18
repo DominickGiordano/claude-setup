@@ -114,6 +114,40 @@ Bad: `# increment the counter`
 
 Good: `# vendor IDs repeat across regions, so key on (id, region)`
 
+### Length is the wrong axis
+
+The instinct when told "fewer comments" is to shorten. That deletes the wrong
+ones. Compare, from a real workflow-validation change:
+
+```python
+# BAD — one line, and it earns nothing. The reader can see the call.
+# (b) cross-step path accumulation
+by_id = {s.get("id"): s for s in steps}
+
+# GOOD — five lines, all of them unrecoverable from the code.
+# Memoized on (step, capabilities-so-far) rather than per-path. Enumerating
+# simple paths was exponential in the diamond count — 13.9s at 61 steps, hours
+# at ~90, on the event loop (#1459). Reaching a step with an accumulator already
+# explored from cannot reach a new trifecta, since capabilities only grow.
+# The memo is also what stops a cycle now, in place of the old per-path `seen`.
+by_id = {s.get("id"): s for s in steps}
+```
+
+The good version is 5x longer and is the correct call. It carries a measurement,
+an issue ref, and the argument for why the memo is safe — three things no reader
+reconstructs from `by_id = {...}`. Someone shortening this to
+`# memoize by (step, caps)` has thrown away the entire content and kept the part
+the code already said.
+
+So the question is never "is this comment long?" It is "what does a reader lose
+if I delete this line?" If the answer is nothing, delete it at any length. If the
+answer is an hour of re-derivation, keep it at any length.
+
+`guard-comments.js` enforces only the mechanical half of this — a one-line
+comment whose words all appear in the line beneath it. Everything above is
+judgment the hook cannot make, which is why it exempts multi-line comments,
+issue refs, and anything containing a *because*.
+
 ## Example 5 — the JS shapes
 
 ```js
