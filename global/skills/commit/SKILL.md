@@ -48,7 +48,9 @@ Where `<type>` is one of: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `s
 ## Rules
 - Headings only for multi-concern commits — a single-concern commit gets a flat bullet list
 - Each bullet should describe WHAT changed and WHY (briefly), one clause
-- Keep the summary line under 72 characters
+- Caps, enforced by `guard-bash.js`: subject ≤ 72 chars, body ≤ 800 chars,
+  each bullet ≤ 120 chars. If the body won't fit, the commit is doing too much —
+  split it. The message is not the place to explain the whole design
 - Use present tense ("add", "fix", "update" — not "added", "fixed")
 - If changes span multiple unrelated concerns, suggest splitting into multiple commits and ask before proceeding
 - Never use `git add -A` blindly — review what's being staged

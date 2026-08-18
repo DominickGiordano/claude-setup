@@ -31,6 +31,10 @@
 - Early returns over nested conditionals
 - Explicit error handling — no silent failures
 - No commented-out code in commits
+- How much code to write, and how much of it should be comments, lives in
+  `~/.claude/rules/code-style.md`, which always loads. Short summary: write the
+  version a competent engineer writes when nobody is watching. The `caveman-code`
+  skill has the worked examples.
 
 ## Reuse Before Adding
 - Before writing a new helper, component, util, hook, or context function, grep the codebase first — 30 seconds searching beats 5 minutes writing
@@ -85,6 +89,10 @@ Rules:
   A confidently wrong architecture doc gets trusted; a missing one just gets written
 - Skip brainstorm only if approach is already decided
 - Skip plan only for tiny tasks (single file, no risk, < 30 min)
+- Decompose before coding anything past a one-line fix — numbered pieces with
+  size and dependencies, confirmed before code. The `pr-sizing` skill has the
+  split rules and the line budgets; `guard-bash.js` asks at `gh pr create` when a
+  PR runs past 400 lines of hand-written logic
 - Never execute a plan with status `Draft` — flip to `Ready` first
 - Ask the `compounder` agent to capture patterns worth preserving across sessions
 - Always run `/end-session` before closing
@@ -101,8 +109,8 @@ nothing until asked. `claude-setup help` prints the live command list.
 
 ## Rules loaded separately
 `~/.claude/rules/` carries the detail so it isn't in context every session.
-Always load: `root-cause.md`, `git-discipline.md`, `writing-style.md`, and
-`constitution.md` + `constitution-local.md` (Kenn's Clanker Constitution,
+Always load: `root-cause.md`, `git-discipline.md`, `writing-style.md`,
+`code-style.md`, and `constitution.md` + `constitution-local.md` (Kenn's Clanker Constitution,
 vendored verbatim, plus where we differ from it). `verification.md` loads on UI
 and template files; `config-hygiene.md` loads when editing Claude config itself.
 
