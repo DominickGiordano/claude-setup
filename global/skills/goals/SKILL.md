@@ -56,6 +56,11 @@ Print a short summary and stop for one confirmation:
 
 Creating issues is not reversible tidily. Wait for a clear yes.
 
+Each task must be one reviewable piece per `rules/pr-sizing.md`: stands alone,
+under ~200 lines of hand-written logic, no refactor riding along with a behavior
+change. If a plan task is really three PRs, split it into three issues here and
+say so in the summary above — this is the last cheap place to fix the split.
+
 ## Step 3 — Create the GitHub issues
 
 Verify the repo: `gh repo view --json nameWithOwner -q .nameWithOwner`. If `gh` isn't

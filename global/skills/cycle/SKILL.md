@@ -117,6 +117,9 @@ re-brainstorm work that's already planned.
 - **Four gates, four real answers.** Never chain past a gate on your own judgment. The point is
   speed between stages, not removing the human from them.
 - Write no implementation code before Stage 4.
+- Stage 2's plan must carry the numbered decomposition from `rules/pr-sizing.md`, and
+  Stage 3 must make each issue one reviewable piece. `/cycle` reads files instead of
+  invoking the commands, so these do not come along for free.
 - Create no GitHub issues before Stage 3's own confirmation.
 - If a stage's file is missing, stop and name the path.
 - If an answer at any gate changes the shape of the work, go back a stage rather than patching

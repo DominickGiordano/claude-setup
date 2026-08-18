@@ -31,6 +31,10 @@ stop working. Do them before delegating:
 4. Show the delegation preview — which agents/skills will run and in what order.
 5. Wait for go-ahead.
 
+The delegation preview must state the expected size of each step in hand-written
+logic lines. If any step is past ~400, offer the split from `rules/pr-sizing.md`
+before starting — not after the diff exists.
+
 Then invoke the `executor` agent. It executes, ticks off plan steps, and logs progress to `docs/features/$ARGUMENTS/EXECUTION_LOG.md`.
 
 $ARGUMENTS

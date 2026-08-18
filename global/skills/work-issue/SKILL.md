@@ -88,6 +88,10 @@ Execute the dispatcher's recommendation:
 Always:
 - Run each command in `test_commands` from Project Config after changes.
 - Run each command in `build_commands` from Project Config if relevant files changed.
+- Apply `rules/code-style.md` and `rules/pr-sizing.md`. Both always load, and both
+  apply whether or not the dispatcher named a skill.
+- If the diff passes ~400 lines of hand-written logic, stop and offer the split
+  rather than finishing the issue in one branch.
 
 ### 6. Review
 - Show a summary of all files changed and why.
