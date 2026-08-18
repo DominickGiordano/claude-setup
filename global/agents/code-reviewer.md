@@ -51,6 +51,11 @@ Terraform:
 - Variable names are descriptive
 - No dead code, no commented-out blocks
 
+**Mass** — run the `rules/code-style.md` checklist over the diff. Flag comments
+that restate the line, `try/except` with no recovery, a class with one method, a
+config object with two fields, a wrapper called from one place, log lines
+narrating control flow. Ask of each line: what breaks if it's gone?
+
 **Performance**
 - No obvious N+1 patterns
 - Async/await used correctly (TS/Python)

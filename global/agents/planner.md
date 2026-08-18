@@ -42,8 +42,12 @@ Use this exact structure:
 | `src/...` | [what changes] | [why] |
 
 ## Implementation Steps
-- [ ] Step 1 — [specific, executable action]
-- [ ] Step 2
+One step = one PR. Give each a rough line count and its dependencies, and split
+so every step merges on its own with tests passing. Load the `pr-sizing` skill
+for the split rules and budgets.
+
+- [ ] Step 1 — [specific, executable action] — ~N lines — no deps
+- [ ] Step 2 — [action] — ~N lines — needs 1
 - [ ] ...
 
 ## Out of Scope
@@ -68,5 +72,7 @@ Tell the user:
 ## Principles
 - Steps must be specific enough to execute without guessing
 - Order steps by dependency — don't skip ahead
+- A step over ~200 lines of logic is two steps. Vertical slices, not layers;
+  refactor and behavior change never in the same step
 - Surface open questions rather than silently assuming
 - Keep it lean — no filler sections

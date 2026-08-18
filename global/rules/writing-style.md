@@ -42,17 +42,26 @@ be worth…". Make the call and give the reason. If it is genuinely the user's
 decision, say that it is and lay out the options — that is different from
 hedging.
 
+**7. The wrap-up section.** `## Summary`, `## What changed`, `## Key Features`,
+a bulleted recap of the files you just edited, "let me know if you want me to…".
+The work is the deliverable. Finishing a task means one or two sentences on what
+it does and anything the reader must do next — not a report on it.
+
 ## Caps by surface
 
 | Surface | Cap |
 |---|---|
-| Chat answer to a direct question | Answer in sentence one. No preamble, no closing summary. |
+| Chat answer to a direct question | Answer in sentence one. ≤ 4 lines unless the answer genuinely needs more. No preamble, no closing summary. |
+| Chat after finishing work | 1–2 sentences on what it does, plus anything the user must do. No summary section, no file-by-file recap. |
 | PR body | ≤ 8 bullets, ≤ 25 words each, one clause each |
 | Issue comment | ≤ 15 lines |
-| Commit body | Bullets only. Section headings only when the commit spans >1 concern. |
-| Code comment | Why, never what |
+| Commit subject | ≤ 72 chars, conventional prefix |
+| Commit body | ≤ 800 chars, bullets ≤ 120 chars. Section headings only when the commit spans >1 concern. |
+| Code comment | Why, never what — see `code-style.md` |
 
-The PR and issue caps are enforced by `guard-bash.js`, not by good intentions.
+Everything except the two chat rows is enforced by `guard-bash.js`, not by good
+intentions. Chat has no hook, which makes it the surface that drifts — reread a
+reply before sending and cut every line that is not an answer.
 
 ## Lead with the action item
 
@@ -66,21 +75,11 @@ Good: "Rotate the key — it's in the commit history." Then the investigation.
 ## Code comments
 
 Comment the *why*: the constraint, the bug it avoids, the reason the obvious
-approach fails. Never restate the line.
+approach fails. Never restate the line. No `// Step 1:` scaffolding, no comment
+restating the function name above the function.
 
-```js
-// BAD — restates the code
-// Loop through the users and add each one to the map
-for (const u of users) map.set(u.id, u);
-
-// GOOD — explains a decision the code cannot
-// Last write wins: the API returns duplicates for merged accounts,
-// and the newer row is always last.
-for (const u of users) map.set(u.id, u);
-```
-
-No `// Step 1:` / `// Step 2:` scaffolding narration. No comment restating the
-function name above the function.
+`code-style.md` carries the rest — it governs the code, this file governs the
+prose. Examples of both live in the `caveman-code` skill.
 
 ## What this rule is not
 

@@ -18,26 +18,26 @@ Quick-fix pipeline for small changes that don't need brainstorm/plan. Use for bu
    - If no test suite exists, skip
 6. Run the project's linter if available (`ruff check .`, `mix credo`, `npm run lint`, etc.)
    - Auto-fix lint issues
-7. Show a summary of what changed and why
+7. Report it
 
 ## Output Format
 
-### Fix Applied
-- `file:line` — what changed and why
+No headings. One line per changed file, then test and lint status:
 
-### Tests
-- Pass/fail status, or "no test suite detected"
+```
+`file:line` — what changed and why
+`file:line` — what changed and why
 
-### Lint
-- Clean or issues fixed
-
-### Summary
-One line: what was wrong and what was done.
+Tests: 42 passed. Lint: clean.
+```
 
 ## Rules
 - Do NOT brainstorm or write plan docs — this is the fast path
 - Do NOT create new files unless the fix requires it
-- If the fix is bigger than expected (touches 5+ files or needs architectural decisions), stop and recommend `/plan` instead
+- If the fix is bigger than expected — 5+ files, past ~200 lines of logic, or it
+  needs architectural decisions — stop. Say what you found and recommend `/plan`,
+  or the split from the `pr-sizing` skill. Do not push through and hand over a
+  500-line diff
 - Always read before editing — understand the context
 - Run tests after every fix
 
